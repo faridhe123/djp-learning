@@ -151,7 +151,7 @@ $mform = new $mformclassname($data, $cw->section, $cm, $course);
 $mform->set_data($data);
 
 if ($mform->is_cancelled()) {
-    if ($return && !empty($cm->id)) {
+    if ($return && !empty($cm->id)) { 
         $urlparams = [
             'id' => $cm->id, // We always need the activity id.
             'forceview' => 1, // Stop file downloads in resources.
