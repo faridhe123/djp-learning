@@ -27,3 +27,5 @@ $string['testblock:addinstance'] = 'Add a new test block';
 $string['testblock:myaddinstance'] = 'Add a new test block to Dashboard';
 $string['testblock'] = 'Test Block';
 $string['pluginname'] = 'testblock';
+$string['showcourses'] = 'Show Courses';
+$string['showcoursesdesc'] = 'Show courses instead of Users';
