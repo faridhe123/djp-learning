@@ -18,32 +18,36 @@ class block_cocoon_course_overview extends block_base
         include($CFG->dirroot . '/theme/edumy/ccn/block_handler/specialization.php');
         if (empty($this->config)) {
           $this->config = new \stdClass();
-          $this->config->title = 'Overview';
+
+          # Ubah settingan awal
+//          $this->config->title = 'Overview';
           $this->config->description['text'] = '
-										<h4 class="subtitle">Course Description</h4>
-										<p class="mb30">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. </p>
-										<p class="mb20">It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
-										<h4 class="subtitle">What you\'ll learn</h4>
-										<ul class="cs_course_syslebus">
-											<li><i class="fa fa-check"></i><p>Become a UX designer.</p></li>
-											<li><i class="fa fa-check"></i><p>You will be able to add UX designer to your CV</p></li>
-											<li><i class="fa fa-check"></i><p>Become a UI designer.</p></li>
-											<li><i class="fa fa-check"></i><p>Build &amp; test a full website design.</p></li>
-											<li><i class="fa fa-check"></i><p>Build &amp; test a full mobile app.</p></li>
-										</ul>
-										<ul class="cs_course_syslebus2">
-											<li><i class="fa fa-check"></i><p>Learn to design websites &amp; mobile phone apps.</p></li>
-											<li><i class="fa fa-check"></i><p>You\'ll learn how to choose colors.</p></li>
-											<li><i class="fa fa-check"></i><p>Prototype your designs with interactions.</p></li>
-											<li><i class="fa fa-check"></i><p>Export production ready assets.</p></li>
-											<li><i class="fa fa-check"></i><p>All the techniques used by UX professionals</p></li>
-										</ul>
-										<h4 class="subtitle">Requirements</h4>
-										<ul class="list_requiremetn">
-											<li><i class="fa fa-circle"></i><p>You will need a copy of Adobe XD 2019 or above. A free trial can be downloaded from Adobe.</p></li>
-											<li><i class="fa fa-circle"></i><p>No previous design experience is needed.</p></li>
-											<li><i class="fa fa-circle"></i><p>No previous Adobe XD skills are needed.</p></li>
-										</ul>
+										<h4 class="subtitle"></h4>
+                                        <p><span>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.</span></p>
+                                        <p>It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
+                                        <h4>Duration</h4>
+                                        <p></p>
+                                        <ul>
+                                            <li>3 hr</li>
+                                        </ul>
+                                        <h4>Participant</h4>
+                                        <p></p>
+                                        <ul>
+                                            <li>Educator</li>
+                                            <li>Profession</li>
+                                            <li>Wajib Pajak</li>
+                                        </ul>
+                                        <h4>Pre-Requisite</h4>
+                                        <p></p>
+                                        <ul>
+                                            <li>Memahami dasar perpajakan</li>
+                                            <li>Memahami dasar akuntansi</li>
+                                        </ul>
+                                        <ul class="list_requiremetn">
+                                            <li>
+                                                <p></p>
+                                            </li>
+                                        </ul>
 									';
         }
     }

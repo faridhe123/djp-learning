@@ -3,7 +3,7 @@ global $CFG;
 require_once($CFG->dirroot. '/theme/edumy/ccn/course_handler/ccn_course_handler.php');
 require_once($CFG->dirroot. '/theme/edumy/ccn/block_handler/ccn_block_handler.php');
 
-class block_cocoon_course_details extends block_base
+class block_cocoon_course_details_djp extends block_base
 {
     // Declare first
     public function init()
@@ -60,7 +60,7 @@ class block_cocoon_course_details extends block_base
 
 
 
-# Agar tidak kosong saat belum ada settings
+
 //        if ($this->content !== null) {
 //            return $this->content;
 //        }

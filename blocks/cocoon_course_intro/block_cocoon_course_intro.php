@@ -31,9 +31,10 @@ class block_cocoon_course_intro extends block_base {
         $ccnCourseHandler = new ccnCourseHandler();
         $ccnCourse = $ccnCourseHandler->ccnGetCourseDetails($COURSE->id);
 
-        if ($this->content !== null) {
-            return $this->content;
-        }
+# Agar tidak kosong saat belum ada settings
+//        if ($this->content !== null) {
+//            return $this->content;
+//        }
         $this->content         =  new stdClass;
 
         // initialize overrides
