@@ -7304,7 +7304,7 @@ class context_module extends context {
             if ($cm = $DB->get_record('course_modules', array('id' => $cmid), 'id,course', $strictness)) {
                 $parentcontext = context_course::instance($cm->course);
                 $record = context::insert_context_record(CONTEXT_MODULE, $cm->id, $parentcontext->path);
-            }4
+            }
         }
 
         if ($record) {
