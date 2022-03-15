@@ -34,6 +34,221 @@ require_once($CFG->libdir . "/filelib.php");
 
 class local_files_external extends external_api {
 
+
+    /**
+     * Returns description of upload parameters
+     *
+     * @return external_function_parameters
+     * @since Moodle 2.2
+     */
+//    public static function upload_parameters() {
+//        return new external_function_parameters(
+//            array(
+//                'contextid' => new external_value(PARAM_INT, 'context id', VALUE_DEFAULT, null),
+//                'component' => new external_value(PARAM_COMPONENT, 'component'),
+//                'filearea'  => new external_value(PARAM_AREA, 'file area'),
+//                'itemid'    => new external_value(PARAM_INT, 'associated id'),
+//                'filepath'  => new external_value(PARAM_PATH, 'file path'),
+//                'filename'  => new external_value(PARAM_FILE, 'file name'),
+//                'filecontent' => new external_value(PARAM_TEXT, 'file content'),
+//                'contextlevel' => new external_value(PARAM_ALPHA, 'The context level to put the file in,
+//                        (block, course, coursecat, system, user, module)', VALUE_DEFAULT, null),
+//                'instanceid' => new external_value(PARAM_INT, 'The Instance id of item associated
+//                         with the context level', VALUE_DEFAULT, null)
+//            )
+//        );
+//    }
+
+    /**
+     * TEST PARAMETER
+     *
+     * @return external_function_parameters
+     * @since Moodle 2.2
+     */
+    public static function upload_parameters() {
+        return new external_function_parameters(
+            array(
+                'parameter' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
+            )
+        );
+    }
+
+    /**
+     * Uploading a file to moodle
+     *
+     * @param int    $contextid    context id
+     * @param string $component    component
+     * @param string $filearea     file area
+     * @param int    $itemid       item id
+     * @param string $filepath     file path
+     * @param string $filename     file name
+     * @param string $filecontent  file content
+     * @param string $contextlevel Context level (block, course, coursecat, system, user or module)
+     * @param int    $instanceid   Instance id of the item associated with the context level
+     * @return array
+     * @since Moodle 2.2
+     */
+//    public static function upload($contextid, $component, $filearea, $itemid, $filepath, $filename, $filecontent, $contextlevel, $instanceid) {
+//        global $USER, $CFG;
+//
+//        $fileinfo = self::validate_parameters(self::upload_parameters(), array(
+//            'contextid' => $contextid, 'component' => $component, 'filearea' => $filearea, 'itemid' => $itemid,
+//            'filepath' => $filepath, 'filename' => $filename, 'filecontent' => $filecontent, 'contextlevel' => $contextlevel,
+//            'instanceid' => $instanceid));
+//
+//        if (!isset($fileinfo['filecontent'])) {
+//            throw new moodle_exception('nofile');
+//        }
+//        // Saving file.
+//        $dir = make_temp_directory('wsupload');
+//
+//        if (empty($fileinfo['filename'])) {
+//            $filename = uniqid('wsupload', true).'_'.time().'.tmp';
+//        } else {
+//            $filename = $fileinfo['filename'];
+//        }
+//
+//        if (file_exists($dir.$filename)) {
+//            $savedfilepath = $dir.uniqid('m').$filename;
+//        } else {
+//            $savedfilepath = $dir.$filename;
+//        }
+//
+//        file_put_contents($savedfilepath, base64_decode($fileinfo['filecontent']));
+//        @chmod($savedfilepath, $CFG->filepermissions);
+//        unset($fileinfo['filecontent']);
+//
+//        if (!empty($fileinfo['filepath'])) {
+//            $filepath = $fileinfo['filepath'];
+//        } else {
+//            $filepath = '/';
+//        }
+//
+//        // Only allow uploads to draft area
+//        if (!($fileinfo['component'] == 'user' and $fileinfo['filearea'] == 'draft')) {
+//            throw new coding_exception('File can be uploaded to user draft area only');
+//        } else {
+//            $component = 'user';
+//            $filearea = $fileinfo['filearea'];
+//        }
+//
+//        $itemid = 0;
+//        if (isset($fileinfo['itemid'])) {
+//            $itemid = $fileinfo['itemid'];
+//        }
+//        if ($filearea == 'draft' && $itemid <= 0) {
+//            // Generate a draft area for the files.
+//            $itemid = file_get_unused_draft_itemid();
+//        } else if ($filearea == 'private') {
+//            // TODO MDL-31116 in user private area, itemid is always 0.
+//            $itemid = 0;
+//        }
+//
+//        // We need to preserve backword compatibility. Context id is no more a required.
+//        if (empty($fileinfo['contextid'])) {
+//            unset($fileinfo['contextid']);
+//        }
+//
+//        // Get and validate context.
+//        $context = self::get_context_from_params($fileinfo);
+//        self::validate_context($context);
+//        if (($fileinfo['component'] == 'user' and $fileinfo['filearea'] == 'private')) {
+//            throw new moodle_exception('privatefilesupload');
+//        }
+//
+//        $browser = get_file_browser();
+//
+//        // Check existing file.
+//        if ($file = $browser->get_file_info($context, $component, $filearea, $itemid, $filepath, $filename)) {
+//            throw new moodle_exception('fileexist');
+//        }
+//
+//        // Move file to filepool.
+//        if ($dir = $browser->get_file_info($context, $component, $filearea, $itemid, $filepath, '.')) {
+//            $info = $dir->create_file_from_pathname($filename, $savedfilepath);
+//            $params = $info->get_params();
+//            unlink($savedfilepath);
+//            return array(
+//                'contextid'=>$params['contextid'],
+//                'component'=>$params['component'],
+//                'filearea'=>$params['filearea'],
+//                'itemid'=>$params['itemid'],
+//                'filepath'=>$params['filepath'],
+//                'filename'=>$params['filename'],
+//                'url'=>$info->get_url()
+//            );
+//        } else {
+//            throw new moodle_exception('nofile');
+//        }
+//    }
+
+    /**
+     * TEST FUNCT
+     *
+     * @param int    $contextid    context id
+     * @param string $component    component
+     * @param string $filearea     file area
+     * @param int    $itemid       item id
+     * @param string $filepath     file path
+     * @param string $filename     file name
+     * @param string $filecontent  file content
+     * @param string $contextlevel Context level (block, course, coursecat, system, user or module)
+     * @param int    $instanceid   Instance id of the item associated with the context level
+     * @return array
+     * @since Moodle 2.2
+     */
+    public static function upload($parameter) {
+
+        $fileinfo = self::validate_parameters(self::upload_parameters(), array(
+            'parameter' => $parameter));
+
+        return ['value' => $fileinfo];
+
+        # return array aslinya
+//        return array(
+//            'contextid'=>$params['contextid'],
+//            'component'=>$params['component'],
+//            'filearea'=>$params['filearea'],
+//            'itemid'=>$params['itemid'],
+//            'filepath'=>$params['filepath'],
+//            'filename'=>$params['filename'],
+//            'url'=>$info->get_url()
+//        );
+    }
+
+   /**
+    * Returns description of upload returns
+    *
+    * @return external_single_structure
+    * @since Moodle 2.2
+    */
+//    public static function upload_returns() {
+//        return new external_single_structure(
+//            array(
+//                'contextid' => new external_value(PARAM_INT, ''),
+//                'component' => new external_value(PARAM_COMPONENT, ''),
+//                'filearea'  => new external_value(PARAM_AREA, ''),
+//                'itemid'   => new external_value(PARAM_INT, ''),
+//                'filepath' => new external_value(PARAM_TEXT, ''),
+//                'filename' => new external_value(PARAM_FILE, ''),
+//                'url'      => new external_value(PARAM_TEXT, ''),
+//            )
+//        );
+//    }
+
+    /**
+     * TEST RETURNS
+     */
+    public static function upload_returns() {
+        return new external_single_structure(
+            array(
+                'value' => new external_value(PARAM_TEXT, ''),
+            )
+        );
+    }
+
+
+
     public static function test_parameters() {
         return new external_function_parameters(
             array(
@@ -75,6 +290,7 @@ class local_files_external extends external_api {
             )
         );
     }
+
 
 
     public static function get_files_parameters() {
@@ -119,26 +335,28 @@ class local_files_external extends external_api {
         );
     }
 
+
+
     /**
      * Returns description of upload parameters
      *
      * @return external_function_parameters
      */
-    public static function upload_parameters() {
+    public static function upload_test_parameters() {
         return new external_function_parameters(
             array(
-                'param_text' => new external_value(PARAM_TEXT, 'CONTOH PARAMS TIPE TEXT', VALUE_REQUIRED, 'ABC', NULL_NOT_ALLOWED),
-//                'contextid' => new external_value(PARAM_INT, 'context id', VALUE_DEFAULT, null),
-//                'component' => new external_value(PARAM_COMPONENT, 'component'),
-//                'filearea'  => new external_value(PARAM_AREA, 'file area'),
-//                'itemid'    => new external_value(PARAM_INT, 'associated id'),
-//                'filepath'  => new external_value(PARAM_PATH, 'file path'),
-//                'filename'  => new external_value(PARAM_FILE, 'file name'),
+//                'param_text' => new external_value(PARAM_TEXT, 'CONTOH PARAMS TIPE TEXT', VALUE_REQUIRED, 'ABC', NULL_NOT_ALLOWED),
+                'contextid' => new external_value(PARAM_INT, 'context id', VALUE_DEFAULT, null),
+                'component' => new external_value(PARAM_COMPONENT, 'component'),
+                'filearea'  => new external_value(PARAM_AREA, 'file area'),
+                'itemid'    => new external_value(PARAM_INT, 'associated id'),
+                'filepath'  => new external_value(PARAM_PATH, 'file path'),
+                'filename'  => new external_value(PARAM_FILE, 'file name'),
 //                'filecontent' => new external_value(PARAM_TEXT, 'file content'),
-//                'contextlevel' => new external_value(PARAM_ALPHA, 'The context level to put the file in,
-//                        (block, course, coursecat, system, user, module)', VALUE_DEFAULT, null),
-//                'instanceid' => new external_value(PARAM_INT, 'The Instance id of item associated
-//                         with the context level', VALUE_DEFAULT, null)
+                'contextlevel' => new external_value(PARAM_ALPHA, 'The context level to put the file in,
+                        (block, course, coursecat, system, user, module)', VALUE_DEFAULT, null),
+                'instanceid' => new external_value(PARAM_INT, 'The Instance id of item associated
+                         with the context level', VALUE_DEFAULT, null)
             )
         );
     }
@@ -149,65 +367,71 @@ class local_files_external extends external_api {
      * @param int    $contextid    context id
      * @return array
      */
-    public static function upload(
-        $param_text
-//        $contextid, $component, $filearea, $itemid, $filepath, $filename, $filecontent, $contextlevel, $instanceid
+    public static function upload_test(
+//          $param_text
+            $contextid, $component, $filearea, $itemid, $filepath, $filename,
+//            $filecontent,
+            $contextlevel, $instanceid
         ) {
         global $USER, $CFG;
 
         $fileinfo = self::validate_parameters(self::upload_parameters(), array(
-                'param_text' => $param_text
-//            'contextid' => $contextid, 'component' => $component, 'filearea' => $filearea, 'itemid' => $itemid,
-//            'filepath' => $filepath, 'filename' => $filename, 'filecontent' => $filecontent, 'contextlevel' => $contextlevel,
-//            'instanceid' => $instanceid
+//                'param_text' => $param_text
+            'contextid' => $contextid,
+            'component' => $component,
+            'filearea' => $filearea,
+            'itemid' => $itemid,
+            'filepath' => $filepath,
+            'filename' => $filename,
+//            'filecontent' => $filecontent,
+            'contextlevel' => $contextlevel,'instanceid' => $instanceid
         ));
 
 //        return(['result_test' => var_dump($context)]);
 
-//        $context = \context_block::instance('1')->get_context_name();
-//        $context = get_context_info_array(6);
-        $context = context_module::instance(999)->id;
-//        $context = context_user::instance($USER->id);
+        $contextid = $fileinfo['contextid'];
 
-        $record = new stdClass();
-        $record->component = 'quiz';
-        $record->filearea = 'feedback';
-        $record->filepath = '/';
-        $record->itemid   = 0;
-        $record->license  = ' none ';
-        $record->author   = 'Dhea Farizka';
-
+        if  ($fileinfo['context_level'] == CONTEXT_SYSTEM )       $contextid = 1;
+        elseif  ($fileinfo['context_level'] == CONTEXT_USER )     $contextid = context_user::instance($fileinfo['instanceid']);
+        elseif  ($fileinfo['context_level'] == CONTEXT_COURSECAT) $contextid = context_coursecat::instance($fileinfo['instanceid']);
+        elseif  ($fileinfo['context_level'] == CONTEXT_COURSE )   $contextid = context_course::instance($fileinfo['instanceid']);
+        elseif  ($fileinfo['context_level'] == CONTEXT_MODULE )   $contextid = context_module::instance($fileinfo['instanceid']);
+        else                                                      $contextid = context_block::instance($fileinfo['instanceid']);
 
         $elname = 'file_1';
-
         $fs = get_file_storage();
 
-        $sourcefield = $_FILES[$elname]['name'];
-        $record->source = self::build_source_field($sourcefield);
-
+        $record = new stdClass();
+        $record->contextid = $contextid;
+        $record->component = $fileinfo['component'];
+        $record->filearea = $fileinfo['filearea'];
+        $record->filepath = $fileinfo['filepath'];
+        $record->itemid   = $fileinfo['itemid'];
+        $record->license  = '-';
+        $record->author   = 'MDF';
+        $record->userid    = $USER->id;
+        $record->source    = self::build_source_field($_FILES[$elname]['name']);
         $record->filename = clean_param($_FILES[$elname]['name'], PARAM_FILE);
 
         if (empty($record->itemid)) {
             $record->itemid = 0;
         }
 
-        $record->contextid = $context->id;
-        $record->userid    = $USER->id;
-
         # Kalau Pluginfile
 
 //        $syscontext = \context_system::instance();
 
-        $filerecord = [
-            'contextid' => $context,
-            'component' => 'mod_quiz',
-            'filearea' => 'intro',
-            'itemid' => 0,
-            'filepath' => '/',
-            'filename' => $record->filename,
-        ];
+//        $filerecord = [
+//            'contextid' => $fileinfo['context'],
+//            'component' => 'mod_quiz',
+//            'filearea' => 'intro',
+//            'itemid' => 0,
+//            'filepath' => '/',
+//            'filename' => $filename,
+//            'source' => $sourcefield,
+//        ];
 
-        $stored_file = $fs->create_file_from_pathname($filerecord, $_FILES[$elname]['tmp_name']);
+        $stored_file = $fs->create_file_from_pathname($record, $_FILES[$elname]['tmp_name']);
 
         return array(
 //            'url'=>moodle_url::make_draftfile_url($record->itemid, $record->filepath, $record->filename)->out(false),
@@ -241,7 +465,7 @@ class local_files_external extends external_api {
      * @return external_single_structure
      * @since Moodle 2.2
      */
-    public static function upload_returns() {
+    public static function upload_test_returns() {
         return new external_single_structure(
             array(
 //                'contextid' => new external_value(PARAM_INT, ''),
