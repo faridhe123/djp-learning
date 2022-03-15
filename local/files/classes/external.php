@@ -41,23 +41,23 @@ class local_files_external extends external_api {
      * @return external_function_parameters
      * @since Moodle 2.2
      */
-//    public static function upload_parameters() {
-//        return new external_function_parameters(
-//            array(
-//                'contextid' => new external_value(PARAM_INT, 'context id', VALUE_DEFAULT, null),
-//                'component' => new external_value(PARAM_COMPONENT, 'component'),
-//                'filearea'  => new external_value(PARAM_AREA, 'file area'),
-//                'itemid'    => new external_value(PARAM_INT, 'associated id'),
-//                'filepath'  => new external_value(PARAM_PATH, 'file path'),
-//                'filename'  => new external_value(PARAM_FILE, 'file name'),
-//                'filecontent' => new external_value(PARAM_TEXT, 'file content'),
-//                'contextlevel' => new external_value(PARAM_ALPHA, 'The context level to put the file in,
-//                        (block, course, coursecat, system, user, module)', VALUE_DEFAULT, null),
-//                'instanceid' => new external_value(PARAM_INT, 'The Instance id of item associated
-//                         with the context level', VALUE_DEFAULT, null)
-//            )
-//        );
-//    }
+    public static function upload_parameters() {
+        return new external_function_parameters(
+            array(
+                'contextid' => new external_value(PARAM_INT, 'context id', VALUE_DEFAULT, null),
+                'component' => new external_value(PARAM_COMPONENT, 'component'),
+                'filearea'  => new external_value(PARAM_AREA, 'file area'),
+                'itemid'    => new external_value(PARAM_INT, 'associated id'),
+                'filepath'  => new external_value(PARAM_PATH, 'file path'),
+                'filename'  => new external_value(PARAM_FILE, 'file name'),
+                'filecontent' => new external_value(PARAM_TEXT, 'file content'),
+                'contextlevel' => new external_value(PARAM_ALPHA, 'The context level to put the file in,
+                        (block, course, coursecat, system, user, module)', VALUE_DEFAULT, null),
+                'instanceid' => new external_value(PARAM_INT, 'The Instance id of item associated
+                         with the context level', VALUE_DEFAULT, null)
+            )
+        );
+    }
 
     /**
      * TEST PARAMETER
@@ -65,13 +65,13 @@ class local_files_external extends external_api {
      * @return external_function_parameters
      * @since Moodle 2.2
      */
-    public static function upload_parameters() {
-        return new external_function_parameters(
-            array(
-                'parameter' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
-            )
-        );
-    }
+//    public static function upload_parameters() {
+//        return new external_function_parameters(
+//            array(
+//                'parameter' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
+//            )
+//        );
+//    }
 
     /**
      * Uploading a file to moodle
@@ -183,7 +183,7 @@ class local_files_external extends external_api {
 //    }
 
     /**
-     * TEST FUNCT
+     * MODIFIKASI FUNGSI UPLOAD
      *
      * @param int    $contextid    context id
      * @param string $component    component
@@ -197,23 +197,120 @@ class local_files_external extends external_api {
      * @return array
      * @since Moodle 2.2
      */
-    public static function upload($parameter) {
+    public static function upload($contextid, $component, $filearea, $itemid, $filepath, $filename, $filecontent, $contextlevel, $instanceid) {
+        global $USER, $CFG;
 
         $fileinfo = self::validate_parameters(self::upload_parameters(), array(
-            'parameter' => $parameter));
+            'contextid' => $contextid, 'component' => $component, 'filearea' => $filearea, 'itemid' => $itemid,
+            'filepath' => $filepath, 'filename' => $filename, 'filecontent' => $filecontent, 'contextlevel' => $contextlevel,
+            'instanceid' => $instanceid));
 
-        return ['value' => $fileinfo];
+        # ganti sistem filecontent tidak perlu menggunanaka base64
+        if (!isset($fileinfo['filecontent'])) {
+            throw new moodle_exception('nofile');
+        }
 
-        # return array aslinya
-//        return array(
-//            'contextid'=>$params['contextid'],
-//            'component'=>$params['component'],
-//            'filearea'=>$params['filearea'],
-//            'itemid'=>$params['itemid'],
-//            'filepath'=>$params['filepath'],
-//            'filename'=>$params['filename'],
-//            'url'=>$info->get_url()
-//        );
+        // Saving file.
+        $dir = make_temp_directory('wsupload').'/';
+
+        $elname = 'file_1';
+
+        if(!empty($_FILES)){
+            $filename = $_FILES[$elname]['name'];
+        }
+        elseif (empty($fileinfo['filename'])) {
+            $filename = uniqid('wsupload', true).'_'.time().'.tmp';
+        } else {
+            $filename = $fileinfo['filename'];
+        }
+
+        if (file_exists($dir.$filename)) {
+            $savedfilepath = $dir.uniqid('m').$filename;
+        } else {
+            $savedfilepath = $dir.$filename;
+        }
+
+        # Menggunakan base64
+//        file_put_contents($savedfilepath, base64_decode($fileinfo['filecontent']));
+
+        # coba pakai $_FILES
+        # bisa pakai copy(source,destination)
+        file_put_contents($savedfilepath, file_get_contents($_FILES[$elname]['tmp_name']));
+
+        @chmod($savedfilepath, $CFG->filepermissions);
+        unset($fileinfo['filecontent']);
+
+        if (!empty($fileinfo['filepath'])) {
+            $filepath = $fileinfo['filepath'];
+        } else {
+            $filepath = '/';
+        }
+
+
+        // Only allow uploads to draft area
+        # Seharusnya bisa untuk semua AREA
+//        if (!($fileinfo['component'] == 'user' and $fileinfo['filearea'] == 'draft')) {
+//            throw new coding_exception('File can be uploaded to user draft area only');
+//        } else {
+//            $component = 'user';
+//            $filearea = $fileinfo['filearea'];
+//        }
+
+        $itemid = 0;
+        if (isset($fileinfo['itemid'])) {
+            $itemid = $fileinfo['itemid'];
+        }
+
+        # Hanya bisa untuk draft area ?
+//        if ($filearea == 'draft' && $itemid <= 0) {
+//            // Generate a draft area for the files.
+//            $itemid = file_get_unused_draft_itemid();
+//        } else if ($filearea == 'private') {
+//            // TODO MDL-31116 in user private area, itemid is always 0.
+//            $itemid = 0;
+//        }
+
+        // We need to preserve backword compatibility. Context id is no more a required.
+        # Context ID Bisa Kosong !
+        if (empty($fileinfo['contextid'])) {
+            unset($fileinfo['contextid']);
+        }
+
+        // Get and validate context.
+        # Memproses context_level dan context_instance JIKA tidak ada context ID
+        $context = self::get_context_from_params($fileinfo);
+        self::validate_context($context);
+//        if (($fileinfo['component'] == 'user' and $fileinfo['filearea'] == 'private')) {
+//            throw new moodle_exception('privatefilesupload');
+//        }
+        $browser = get_file_browser();
+
+        // Check existing file.
+        if ($file = $browser->get_file_info($context, $component, $filearea, $itemid, $filepath, $filename)) {
+            throw new moodle_exception('fileexist');
+        }
+
+        // Move file to filepool.
+        if ($dir = $browser->get_file_info($context, $component, $filearea, $itemid, $filepath, '.')) {
+            $info = $dir->create_file_from_pathname($filename, $savedfilepath);
+            $params = $info->get_params();
+            unlink($savedfilepath);
+
+            return array(
+                'contextid'=>$params['contextid'],
+                'component'=>$params['component'],
+                'filearea'=>$params['filearea'],
+                'itemid'=>$params['itemid'],
+                'filepath'=>$params['filepath'],
+                'filename'=>$params['filename'],
+                'url'=>$info->get_url()
+            );
+        } else {
+            throw new moodle_exception('nofile');
+        }
+        # ini untuk TEST
+//        return ['value' => var_dump($context)];
+
     }
 
    /**
@@ -222,30 +319,30 @@ class local_files_external extends external_api {
     * @return external_single_structure
     * @since Moodle 2.2
     */
-//    public static function upload_returns() {
-//        return new external_single_structure(
-//            array(
-//                'contextid' => new external_value(PARAM_INT, ''),
-//                'component' => new external_value(PARAM_COMPONENT, ''),
-//                'filearea'  => new external_value(PARAM_AREA, ''),
-//                'itemid'   => new external_value(PARAM_INT, ''),
-//                'filepath' => new external_value(PARAM_TEXT, ''),
-//                'filename' => new external_value(PARAM_FILE, ''),
-//                'url'      => new external_value(PARAM_TEXT, ''),
-//            )
-//        );
-//    }
-
-    /**
-     * TEST RETURNS
-     */
     public static function upload_returns() {
         return new external_single_structure(
             array(
-                'value' => new external_value(PARAM_TEXT, ''),
+                'contextid' => new external_value(PARAM_INT, ''),
+                'component' => new external_value(PARAM_COMPONENT, ''),
+                'filearea'  => new external_value(PARAM_AREA, ''),
+                'itemid'   => new external_value(PARAM_INT, ''),
+                'filepath' => new external_value(PARAM_TEXT, ''),
+                'filename' => new external_value(PARAM_FILE, ''),
+                'url'      => new external_value(PARAM_TEXT, ''),
             )
         );
     }
+
+        /**
+         * TEST RETURNS
+         */
+    //    public static function upload_returns() {
+    //        return new external_single_structure(
+    //            array(
+    //                'value' => new external_value(PARAM_TEXT, ''),
+    //            )
+    //        );
+    //    }
 
 
 
