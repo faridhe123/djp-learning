@@ -58,10 +58,8 @@ class local_module_external extends external_api {
 //    }
 
     /**
-     * CREATE PAGE PARAMETER
+     * CREATE PAGE MODULE
      *
-     * @return external_function_parameters
-     * @since Moodle 2.2
      */
     public static function create_page_module_parameters() {
         return new external_function_parameters(
@@ -69,14 +67,11 @@ class local_module_external extends external_api {
                 'courseid' => new external_value(PARAM_INT, 'context id', VALUE_DEFAULT, null),
                 'section' => new external_value(PARAM_INT, 'context id', VALUE_DEFAULT, null),
                 'name' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
-                'intro' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
+                'intro' => new external_value(PARAM_RAW, 'context id', VALUE_DEFAULT, null),
                 'content' => new external_value(PARAM_RAW, 'context id', VALUE_DEFAULT, null),
             )
         );
     }
-
-
-
     public static function create_page_module($courseid,$section,$name,$intro,$content) {
         global $DB, $USER,$CFG;
 
@@ -241,11 +236,385 @@ class local_module_external extends external_api {
 
         return ['value'=> var_dump($fromform)];
     }
+    public static function create_page_module_returns() {
+        return new external_single_structure(
+            array(
+                'value' => new external_value(PARAM_TEXT, ''),
+            )
+        );
+    }
 
     /**
-     * TEST RETURNS
+     * CREATE QUIZ MODULE
+     *
      */
-    public static function create_page_module_returns() {
+    public static function create_quiz_module_parameters() {
+        return new external_function_parameters(
+            array(
+                'courseid' => new external_value(PARAM_INT, 'context id', VALUE_DEFAULT, null),
+                'section' => new external_value(PARAM_INT, 'context id', VALUE_DEFAULT, null),
+                'name' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
+                'intro' => new external_value(PARAM_RAW, 'context id', VALUE_DEFAULT, null),
+            )
+        );
+    }
+    public static function create_quiz_module($courseid,$section,$name,$intro) {
+        global $DB, $USER,$CFG;
+
+        # hardcode parameter
+//        $courseid = 33;
+        $module = 'quiz';
+//        $section = 1;
+
+//        $params = self::validate_parameters(self::create_quiz_module_parameters(),
+//            array(
+//                'parameter' => $parameter,
+//            ));
+
+        $params = self::validate_parameters(self::create_page_module_parameters(),
+            array(
+                'courseid' => $courseid,
+                'section' => $section,
+                'name' => $name,
+                'intro' => $intro,
+            ));
+
+        $course = $DB->get_record('course', array('id'=>$params['courseid']), '*', MUST_EXIST);
+        $courseformat = course_get_format($course);
+        $maxsections = $courseformat->get_max_sections();
+
+        list($module, $context, $cw, $cm, $data) = prepare_new_moduleinfo_data($course, $module, $section);
+        $sectionname = get_section_name($course, $cw);
+        $fullmodulename = get_string('modulename', $module->name);
+
+        $pageheading = get_string('addinganew', 'moodle', $fullmodulename);
+
+        $navbaraddition = $pageheading;
+
+        $pagepath = 'mod-' . $module->name . '-';
+        $pagepath .= 'mod';
+
+        $modmoodleform = "$CFG->dirroot/mod/$module->name/mod_form.php";
+        if (file_exists($modmoodleform)) {
+            require_once($modmoodleform);
+        } else {
+            print_error('noformdesc');
+        }
+
+        $mformclassname = 'mod_'.$module->name.'_mod_form';
+        $mform = new $mformclassname($data, $cw->section, $cm, $course);
+        $mform->set_data($data);
+
+//        return ['value'=> var_dump($mform)];
+
+        $data = (object) [
+         "name" => $params['name'],
+         "introeditor" => [
+          "text" => $params['intro'],
+          "format" => "1",
+//          "itemid" => 82087916,
+             ],
+         "showdescription" => "0",
+         "timeopen" => 0,
+         "timeclose" => 0,
+         "timelimit" => 0,
+         "overduehandling" => "autosubmit",
+         "graceperiod" => 0,
+         "gradecat" => "2",
+         "gradepass" => null,
+         "grade" => 10.0,
+         "attempts" => "0",
+         "grademethod" => "1",
+         "questionsperpage" => "1",
+         "navmethod" => "free",
+         "shuffleanswers" => "1",
+         "preferredbehaviour" => "deferredfeedback",
+         "canredoquestions" => "0",
+         "attemptonlast" => "0",
+         "attemptimmediately" => "1",
+         "correctnessimmediately" => "1",
+         "marksimmediately" => "1",
+         "specificfeedbackimmediately" => "1",
+         "generalfeedbackimmediately" => "1",
+         "rightanswerimmediately" => "1",
+         "overallfeedbackimmediately" => "1",
+         "attemptopen" => "1",
+         "correctnessopen" => "1",
+         "marksopen" => "1",
+         "specificfeedbackopen" => "1",
+         "generalfeedbackopen" => "1",
+         "rightansweropen" => "1",
+         "overallfeedbackopen" => "1",
+         "showuserpicture" => "0",
+         "decimalpoints" => "2",
+         "questiondecimalpoints" => "-1",
+         "showblocks" => "0",
+         "seb_requiresafeexambrowser" => "0",
+         "filemanager_sebconfigfile" => 155298126,
+         "seb_showsebdownloadlink" => "1",
+         "seb_linkquitseb" => "",
+         "seb_userconfirmquit" => "1",
+         "seb_allowuserquitseb" => "1",
+         "seb_quitpassword" => "",
+         "seb_allowreloadinexam" => "1",
+         "seb_showsebtaskbar" => "1",
+         "seb_showreloadbutton" => "1",
+         "seb_showtime" => "1",
+         "seb_showkeyboardlayout" => "1",
+         "seb_showwificontrol" => "0",
+         "seb_enableaudiocontrol" => "0",
+         "seb_muteonstartup" => "0",
+         "seb_allowspellchecking" => "0",
+         "seb_activateurlfiltering" => "0",
+         "seb_filterembeddedcontent" => "0",
+         "seb_expressionsallowed" => "",
+         "seb_regexallowed" => "",
+         "seb_expressionsblocked" => "",
+         "seb_regexblocked" => "",
+         "seb_allowedbrowserexamkeys" => "",
+         "quizpassword" => "",
+         "subnet" => "",
+         "delay1" => 0,
+         "delay2" => 0,
+         "browsersecurity" => "-",
+         "boundary_repeats" => 1,
+         "feedbacktext" => [
+          0 => [
+           "text" => "",
+           "format" => "1",
+           "itemid" => "838518230"
+          ],
+          1 => [
+           "text" => "",
+           "format" => "1",
+           "itemid" => 31616220
+          ]],
+         "feedbackboundaries" => [
+          0 => ""],
+         "visible" => 1,
+         "visibleoncoursepage" => 1,
+         "cmidnumber" => "",
+         "groupmode" => "0",
+         "groupingid" => "0",
+         "availabilityconditionsjson" => '{"op":"&","c":[],"showc":[]}',
+         "completionunlocked" => 1,
+         "completion" => "1",
+         "completionpass" => 0,
+         "completionattemptsexhausted" => 0,
+         "completionminattempts" => 0,
+         "completionexpected" => 0,
+         "tags" => [],
+         "course" => 33,
+         "coursemodule" => 0,
+         "section" => $params['section'],
+         "module" => 17,
+         "modulename" => "quiz",
+         "instance" => 0,
+         "add" => "quiz",
+         "update" => 0,
+         "return" => 0,
+         "sr" => 0,
+//         "competencies" => [0],
+//         "competency_rule" => "0",
+         "submitbutton2" => "Save and return to course",
+        ];
+
+        /* TEST AREA END */
+
+        $fromform = add_moduleinfo($data, $course,$mform);
+
+        return ['value'=> var_dump($fromform)];
+    }
+    public static function create_quiz_module_returns() {
+        return new external_single_structure(
+            array(
+                'value' => new external_value(PARAM_TEXT, ''),
+            )
+        );
+    }
+
+    /**
+     * CREATE SCORM MODULE
+     *
+     */
+    public static function create_scorm_module_parameters() {
+        return new external_function_parameters(
+            array(
+                'courseid' => new external_value(PARAM_INT, 'context id', VALUE_DEFAULT, null),
+                'section' => new external_value(PARAM_INT, 'context id', VALUE_DEFAULT, null),
+                'name' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
+                'intro' => new external_value(PARAM_RAW, 'context id', VALUE_DEFAULT, null),
+            )
+        );
+    }
+    public static function create_scorm_module($courseid,$section,$name,$intro) {
+        global $DB, $USER,$CFG;
+
+        # hardcode parameter
+//        $courseid = 33;
+        $module = 'quiz';
+//        $section = 1;
+
+//        $params = self::validate_parameters(self::create_quiz_module_parameters(),
+//            array(
+//                'parameter' => $parameter,
+//            ));
+
+        $params = self::validate_parameters(self::create_page_module_parameters(),
+            array(
+                'courseid' => $courseid,
+                'section' => $section,
+                'name' => $name,
+                'intro' => $intro,
+            ));
+
+        $course = $DB->get_record('course', array('id'=>$params['courseid']), '*', MUST_EXIST);
+        $courseformat = course_get_format($course);
+        $maxsections = $courseformat->get_max_sections();
+
+        list($module, $context, $cw, $cm, $data) = prepare_new_moduleinfo_data($course, $module, $section);
+        $sectionname = get_section_name($course, $cw);
+        $fullmodulename = get_string('modulename', $module->name);
+
+        $pageheading = get_string('addinganew', 'moodle', $fullmodulename);
+
+        $navbaraddition = $pageheading;
+
+        $pagepath = 'mod-' . $module->name . '-';
+        $pagepath .= 'mod';
+
+        $modmoodleform = "$CFG->dirroot/mod/$module->name/mod_form.php";
+        if (file_exists($modmoodleform)) {
+            require_once($modmoodleform);
+        } else {
+            print_error('noformdesc');
+        }
+
+        $mformclassname = 'mod_'.$module->name.'_mod_form';
+        $mform = new $mformclassname($data, $cw->section, $cm, $course);
+        $mform->set_data($data);
+
+//        return ['value'=> var_dump($mform)];
+
+        $data = (object) [
+            "name" => $params['name'],
+            "introeditor" => [
+                "text" => $params['intro'],
+                "format" => "1",
+//          "itemid" => 82087916,
+            ],
+            "showdescription" => "0",
+            "timeopen" => 0,
+            "timeclose" => 0,
+            "timelimit" => 0,
+            "overduehandling" => "autosubmit",
+            "graceperiod" => 0,
+            "gradecat" => "2",
+            "gradepass" => null,
+            "grade" => 10.0,
+            "attempts" => "0",
+            "grademethod" => "1",
+            "questionsperpage" => "1",
+            "navmethod" => "free",
+            "shuffleanswers" => "1",
+            "preferredbehaviour" => "deferredfeedback",
+            "canredoquestions" => "0",
+            "attemptonlast" => "0",
+            "attemptimmediately" => "1",
+            "correctnessimmediately" => "1",
+            "marksimmediately" => "1",
+            "specificfeedbackimmediately" => "1",
+            "generalfeedbackimmediately" => "1",
+            "rightanswerimmediately" => "1",
+            "overallfeedbackimmediately" => "1",
+            "attemptopen" => "1",
+            "correctnessopen" => "1",
+            "marksopen" => "1",
+            "specificfeedbackopen" => "1",
+            "generalfeedbackopen" => "1",
+            "rightansweropen" => "1",
+            "overallfeedbackopen" => "1",
+            "showuserpicture" => "0",
+            "decimalpoints" => "2",
+            "questiondecimalpoints" => "-1",
+            "showblocks" => "0",
+            "seb_requiresafeexambrowser" => "0",
+            "filemanager_sebconfigfile" => 155298126,
+            "seb_showsebdownloadlink" => "1",
+            "seb_linkquitseb" => "",
+            "seb_userconfirmquit" => "1",
+            "seb_allowuserquitseb" => "1",
+            "seb_quitpassword" => "",
+            "seb_allowreloadinexam" => "1",
+            "seb_showsebtaskbar" => "1",
+            "seb_showreloadbutton" => "1",
+            "seb_showtime" => "1",
+            "seb_showkeyboardlayout" => "1",
+            "seb_showwificontrol" => "0",
+            "seb_enableaudiocontrol" => "0",
+            "seb_muteonstartup" => "0",
+            "seb_allowspellchecking" => "0",
+            "seb_activateurlfiltering" => "0",
+            "seb_filterembeddedcontent" => "0",
+            "seb_expressionsallowed" => "",
+            "seb_regexallowed" => "",
+            "seb_expressionsblocked" => "",
+            "seb_regexblocked" => "",
+            "seb_allowedbrowserexamkeys" => "",
+            "quizpassword" => "",
+            "subnet" => "",
+            "delay1" => 0,
+            "delay2" => 0,
+            "browsersecurity" => "-",
+            "boundary_repeats" => 1,
+            "feedbacktext" => [
+                0 => [
+                    "text" => "",
+                    "format" => "1",
+                    "itemid" => "838518230"
+                ],
+                1 => [
+                    "text" => "",
+                    "format" => "1",
+                    "itemid" => 31616220
+                ]],
+            "feedbackboundaries" => [
+                0 => ""],
+            "visible" => 1,
+            "visibleoncoursepage" => 1,
+            "cmidnumber" => "",
+            "groupmode" => "0",
+            "groupingid" => "0",
+            "availabilityconditionsjson" => '{"op":"&","c":[],"showc":[]}',
+            "completionunlocked" => 1,
+            "completion" => "1",
+            "completionpass" => 0,
+            "completionattemptsexhausted" => 0,
+            "completionminattempts" => 0,
+            "completionexpected" => 0,
+            "tags" => [],
+            "course" => 33,
+            "coursemodule" => 0,
+            "section" => $params['section'],
+            "module" => 17,
+            "modulename" => "quiz",
+            "instance" => 0,
+            "add" => "quiz",
+            "update" => 0,
+            "return" => 0,
+            "sr" => 0,
+//         "competencies" => [0],
+//         "competency_rule" => "0",
+            "submitbutton2" => "Save and return to course",
+        ];
+
+        /* TEST AREA END */
+
+        $fromform = add_moduleinfo($data, $course,$mform);
+
+        return ['value'=> var_dump($fromform)];
+    }
+    public static function create_scorm_module_returns() {
         return new external_single_structure(
             array(
                 'value' => new external_value(PARAM_TEXT, ''),

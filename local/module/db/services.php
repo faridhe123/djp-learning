@@ -31,8 +31,15 @@ $functions = array(
     'local_module_create_page' => array(
         'classname'     => 'local_module_external',
         'methodname'    => 'create_page_module',
-        'description'   => 'Returns a list of quizzes in a provided list of courses,
-                            if no list is provided all quizzes that the user can view will be returned.',
+        'description'   => 'membuat Activity module PAGE',
+        'type'          => 'write',
+        'capabilities'  => 'mod/quiz:view',
+        'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
+    ),
+    'local_module_create_quiz' => array(
+        'classname'     => 'local_module_external',
+        'methodname'    => 'create_quiz_module',
+        'description'   => 'Membuat activity module QUIZ',
         'type'          => 'write',
         'capabilities'  => 'mod/quiz:view',
         'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
