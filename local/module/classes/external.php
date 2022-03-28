@@ -49,34 +49,61 @@ class local_module_external extends external_api {
      * @return external_function_parameters
      * @since Moodle 2.2
      */
+//    public static function create_page_module_parameters() {
+//        return new external_function_parameters(
+//            array(
+//                'parameter' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
+//            )
+//        );
+//    }
+
+    /**
+     * CREATE PAGE PARAMETER
+     *
+     * @return external_function_parameters
+     * @since Moodle 2.2
+     */
     public static function create_page_module_parameters() {
         return new external_function_parameters(
             array(
-                'parameter' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
+                'courseid' => new external_value(PARAM_INT, 'context id', VALUE_DEFAULT, null),
+                'section' => new external_value(PARAM_INT, 'context id', VALUE_DEFAULT, null),
+                'name' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
+                'intro' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
+                'content' => new external_value(PARAM_RAW, 'context id', VALUE_DEFAULT, null),
             )
         );
     }
 
 
 
-    public static function create_page_module($parameter) {
+    public static function create_page_module($courseid,$section,$name,$intro,$content) {
         global $DB, $USER,$CFG;
 
         # hardcode parameter
-        $courseid = 2;
+//        $courseid = 33;
         $module = 'page';
-        $section = 2;
+//        $section = 1;
 
 
+//
+//        $params = self::validate_parameters(self::create_page_module_parameters(),
+//            array(
+//                'parameter' => $parameter,
+//            ));
 
         $params = self::validate_parameters(self::create_page_module_parameters(),
             array(
-                'parameter' => $parameter,
+                'courseid' => $courseid,
+                'section' => $section,
+                'name' => $name,
+                'intro' => $intro,
+                'content' => $content,
             ));
 
         /*TEST AREA START*/
 
-        $course = $DB->get_record('course', array('id'=>$courseid), '*', MUST_EXIST);
+        $course = $DB->get_record('course', array('id'=>$params['courseid']), '*', MUST_EXIST);
         $courseformat = course_get_format($course);
         $maxsections = $courseformat->get_max_sections();
 
@@ -86,7 +113,6 @@ class local_module_external extends external_api {
 //        }
 
         list($module, $context, $cw, $cm, $data) = prepare_new_moduleinfo_data($course, $module, $section);
-
         $sectionname = get_section_name($course, $cw);
         $fullmodulename = get_string('modulename', $module->name);
 
@@ -160,11 +186,59 @@ class local_module_external extends external_api {
 //            'submitbutton' => "Save and display"
 //        ];
 
-        $fromform = $mform->get_data();
+        // MANUAL FROMFORM
+
+        $data = (object) [
+            'name' => $params['name'],
+            'introeditor' => [
+//                'text' => '<p dir=>"ltr" style=>"text-align: left;">DESC DEBUG</p>',
+                'text' => $params['intro'],
+                'format' => "1",
+//                'itemid' => 103621196
+            ],
+            'showdescription' => "0",
+            'page' => [
+//                'text' => '<p dir=>"ltr" style=>"text-align: left;">CONTENT DEBUG</p>',
+                'text' => $params['content'],
+                'format' => "1",
+//                'itemid' => 892530102
+            ],
+            'display' => 5,
+            'printheading' => "1",
+            'printintro' => "0",
+            'printlastmodified' => "1",
+            'visible' => 1,
+            'visibleoncoursepage' => 1,
+            'cmidnumber' => "",
+            'availabilityconditionsjson' => '{"op":"&","c":[],"showc":[]}',
+            'completionunlocked' => 1,
+            'completion' => "1",
+            'completionexpected' => 0,
+            'tags' => array(),
+            'course' => 30,
+            'coursemodule' => 0,
+            'section' => $params['section'],
+            'module' => 16,
+            'modulename' => "page",
+            'instance' => 0,
+            'add' => "page",
+            'update' => 0,
+            'return' => 0,
+            'sr' => 0,
+//            'competencies' => [0],
+//            'competency_rule' => "0",
+            'submitbutton2' => "Save and return to course",
+            'revision' => 1,
+        ];
+
+//        $fromform = $mform->get_data();
 
         /* TEST AREA END */
 
 //        return ['value'=> var_dump(get_class_methods($mform))];
+
+        $fromform = add_moduleinfo($data, $course,$mform);
+
         return ['value'=> var_dump($fromform)];
     }
 
