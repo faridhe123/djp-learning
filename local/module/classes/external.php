@@ -59,6 +59,8 @@ class local_module_external extends external_api {
 
     /**
      * CREATE MODULE
+     *
+     * versi lebih ringkas dari fungsi sebelumnya
      */
     public static function create_module_parameters() {
         return new external_function_parameters(
@@ -101,6 +103,7 @@ class local_module_external extends external_api {
         $mform = new $mformclassname($data, $cw->section, $cm, $course);
         $mform->set_data($data);
 
+        # Switch untuk data form
         switch ($modulename) {
             case 'page':
                 $data = self::process_page_data($params['name'],$params['intro'],$params['section'],$params['content']);
@@ -122,6 +125,7 @@ class local_module_external extends external_api {
                 print_error('Fungsi belum ada');
         }
 
+        # Mulai membuat module berdasarkan data form
         $fromform = add_moduleinfo($data, $course,$mform);
 
         return ['value'=> var_dump($fromform)];
@@ -510,6 +514,35 @@ class local_module_external extends external_api {
         } else {
             throw new moodle_exception('nofile');
         }
+    }
+
+    /**
+     * CREATE QUESTION
+     *
+     */
+    public static function create_question_parameters() {
+        return new external_function_parameters(
+            array(
+                'parameter' => new external_value(PARAM_TEXT, 'test parameter', VALUE_DEFAULT, null),
+            )
+        );
+    }
+    public static function create_question($parameter) {
+        global $DB, $USER,$CFG;
+
+        $params = self::validate_parameters(self::create_question_parameters(),
+            array(
+                'parameter' => $parameter,
+            ));
+
+        return ['value'=> var_dump($params)];
+    }
+    public static function create_question_returns() {
+        return new external_single_structure(
+            array(
+                'value' => new external_value(PARAM_TEXT, ''),
+            )
+        );
     }
 
     /**
