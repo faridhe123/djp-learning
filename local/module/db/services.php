@@ -36,6 +36,14 @@ $functions = array(
         'capabilities'  => 'mod/quiz:view',
         'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
     ),
+    'local_module_create_question' => array(
+        'classname'     => 'local_module_external',
+        'methodname'    => 'create_question',
+        'description'   => 'membuat Question',
+        'type'          => 'write',
+        'capabilities'  => 'mod/quiz:view',
+        'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
+    ),
     'local_module_create_page' => array(
         'classname'     => 'local_module_external',
         'methodname'    => 'create_page_module',
