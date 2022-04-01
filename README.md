@@ -5,5 +5,8 @@ Work in Progress
 perangkat lunak yang dirancang untuk membuat, mendistribusikan, 
 dan mengatur penyampaian materi pembelajaran.
 
->Moodle adalah kepanjangan dari Modular Object Oriented Dynamic Learning Environment merupakan software e-learning berbasis website yang dapat digunakan untuk keperluan belajar mengajar dengan prinsip social construction pedagogy.
+> Moodle adalah kepanjangan dari Modular Object Oriented Dynamic
+> Learning Environment merupakan software e-learning berbasis
+> website yang dapat digunakan untuk keperluan belajar mengajar
+> dengan prinsip social construction pedagogy.
 
