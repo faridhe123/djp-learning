@@ -31,6 +31,9 @@ require_once($CFG->libdir . '/externallib.php');
 require_once($CFG->libdir.'/filelib.php');
 require_once($CFG->dirroot . '/mod/page/locallib.php');
 require_once($CFG->dirroot . '/course/modlib.php');
+require_once($CFG->dirroot . '/question/editlib.php');
+require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+
 
 /**
  * Quiz external functions
@@ -164,12 +167,12 @@ class local_module_external extends external_api {
             'visible' => 1,
             'visibleoncoursepage' => 1,
             'cmidnumber' => "",
-            'availabilityconditionsjson' => '{"op":"&","c":[],"showc":[]}',
+            'availabilityconditionsjson' => '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}',
             'completionunlocked' => 1,
             'completion' => "1",
             'completionexpected' => 0,
             'tags' => [],
-            'course' => 30,
+            'course' => 39,
             'coursemodule' => 0,
             'module' => 16,
             'modulename' => "page",
@@ -279,7 +282,7 @@ class local_module_external extends external_api {
             "cmidnumber" => "",
             "groupmode" => "0",
             "groupingid" => "0",
-            "availabilityconditionsjson" => '{"op":"&","c":[],"showc":[]}',
+            'availabilityconditionsjson' => '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}',
             "completionunlocked" => 1,
             "completion" => "1",
             "completionpass" => 0,
@@ -352,7 +355,8 @@ class local_module_external extends external_api {
             "cmidnumber" => "",
             "groupmode" => "0",
             "groupingid" => "0",
-            "availabilityconditionsjson" => '{"op":"&","c":[],"showc":[]}',
+//            "availabilityconditionsjson" => '{"op":"&","c":[],"showc":[]}',
+            'availabilityconditionsjson' => '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}',
             "completionunlocked" =>  1,
             "completion" => "1",
             "completionscorerequired" => null,
@@ -523,21 +527,474 @@ class local_module_external extends external_api {
     public static function create_question_parameters() {
         return new external_function_parameters(
             array(
-                'parameter' => new external_value(PARAM_TEXT, 'test parameter', VALUE_DEFAULT, null),
+//                'parameter' => new external_value(PARAM_TEXT, 'test parameter', VALUE_DEFAULT, null),
+                'courseid' => new external_value(PARAM_INT, 'test parameter', VALUE_DEFAULT, null),
+                'cmid' => new external_value(PARAM_INT, 'test parameter', VALUE_DEFAULT, null),
+                'bankcategory' => new external_value(PARAM_TEXT, 'system,coursecat,course,module', VALUE_DEFAULT, null),
+                'questionname' => new external_value(PARAM_TEXT, 'Nama pertanyaan', VALUE_DEFAULT, null),
+                'questiontext' => new external_value(PARAM_TEXT, 'Text pertanyaan', VALUE_DEFAULT, null),
+                'rightanswer' => new external_value(PARAM_TEXT, 'Jawaban benar', VALUE_DEFAULT, null),
+                'wronganswer1' => new external_value(PARAM_TEXT, 'Jawaban salah', VALUE_DEFAULT, null),
+                'wronganswer2' => new external_value(PARAM_TEXT, 'Jawaban salah', VALUE_OPTIONAL, null),
+                'wronganswer3' => new external_value(PARAM_TEXT, 'Jawaban salah', VALUE_OPTIONAL, null),
+                'wronganswer4' => new external_value(PARAM_TEXT, 'Jawaban salah', VALUE_OPTIONAL, null),
             )
         );
     }
-    public static function create_question($parameter) {
+    public static function create_question(
+        $courseid,$cmid,$bankcategory,$questionname,$questiontext,$rightanswer,$wronganswer1,$wronganswer2=null,$wronganswer3=null,$wronganswer4=null
+    ) {
         global $DB, $USER,$CFG;
 
         $params = self::validate_parameters(self::create_question_parameters(),
             array(
-                'parameter' => $parameter,
+                'courseid' => $courseid,
+                'cmid' => $cmid,
+                'bankcategory' => $bankcategory,
+                'questionname' => $questionname,
+                'questiontext' => $questiontext,
+                'rightanswer' => $rightanswer,
+                'wronganswer1' => $wronganswer1,
+                'wronganswer2' => $wronganswer2,
+                'wronganswer3' => $wronganswer3,
+                'wronganswer4' => $wronganswer4,
             ));
 
-        return ['value'=> var_dump($params)];
+        # BUAT PARAM DUMMY
+        $id = 0;
+        $makecopy = 0;
+        $qtype = "multichoice";
+        $categoryid = 12;
+        $cmid = $params['cmid'];
+        $courseid = $params['courseid'];
+        $wizardnow = "";
+        $originalreturnurl = '/mod/quiz/edit.php?cmid=106&cat=14%2C27&addonpage=1';
+        $appendqnumstring = 'addquestion';
+        $inpopup = 0;
+        $scrollpos = 0 ;
+        # BUAT CATEGORY YANG BELUM ADA
+        $baseurl = "/mod/quiz/edit.php";
+        $edittab = 'editq';
+        $parame = [
+            "cmid" => $cmid,
+//            "qpage" => null,
+////            "cat" => "12,80",
+//            "category" => null,
+//            "qperpage" => null,
+//            "recurse" => null,
+//            "showhidden" => null,
+//            "qbshowtext" => null,
+//            "cpage" => null,
+//            "qtagids" => null
+        ];
+        list($thispageurl, $contexts, $cmid, $cm, $quiz, $pagevars) =
+            question_build_edit_resources($edittab, $baseurl, $parame);
+        $defaultcategoryobj = question_make_default_categories($contexts->all());
+
+        # GET KATEGORI YANG BISA DIPAKAI
+        $course = $DB->get_record('course', array('id' => $quiz->course));
+        # Ada beberapa ketegori yang bisa dipakai
+        $kategori_q = [
+            'system' => 1, # System
+            'coursecat' => context_coursecat::instance($course->category)->id, # course category
+            'course' => context_course::instance($course->id)->id, # course
+            'module' => context_module::instance($cmid)->id # module
+        ];
+
+        $kat_q = $kategori_q[$params['bankcategory']];
+        $kategorinya = $DB->get_records('question_categories', array('contextid' => $kat_q));
+        foreach ($kategorinya as $kategori) {
+            if ($kategori->parent !== '0')
+                $bankcategory = $kategori->id.','.$kat_q;
+        }
+
+        if ($cmid) {
+            $questionbankurl = new moodle_url('/question/edit.php', array('cmid' => $cmid));
+        } else {
+            $questionbankurl = new moodle_url('/question/edit.php', array('courseid' => $courseid));
+        }
+
+        navigation_node::override_active_url($questionbankurl);
+
+        if ($originalreturnurl) {
+            if (strpos($originalreturnurl, '/') !== 0) {
+                throw new coding_exception("returnurl must be a local URL starting with '/'. $originalreturnurl was given.");
+            }
+            $returnurl = new moodle_url($originalreturnurl);
+        } else {
+            $returnurl = $questionbankurl;
+        }
+        if ($scrollpos) {
+            $returnurl->param('scrollpos', $scrollpos);
+        }
+        list($module, $cm) = get_module_from_cmid($cmid);
+        require_login($cm->course, false, $cm);
+        $thiscontext = context_module::instance($cmid);
+
+        $contexts = new question_edit_contexts($thiscontext);
+
+        $question = new stdClass();
+        $question->category = $categoryid;
+        $question->qtype = $qtype;
+        $question->createdby = $USER->id;
+
+        // Check that users are allowed to create this question type at the moment.
+        if (!question_bank::qtype_enabled($qtype)) {
+            print_error('cannotenable', 'question', $returnurl, $qtype);
+        }
+
+        $qtypeobj = question_bank::get_qtype($question->qtype);
+
+        if (isset($question->categoryobject)) {
+            $category = $question->categoryobject;
+        } else {
+            // Validate the question category.
+            if (!$category = $DB->get_record('question_categories', array('id' => $question->category))) {
+                print_error('categorydoesnotexist', 'question', $returnurl);
+            }
+        }
+
+        // Check permissions
+        $question->formoptions = new stdClass();
+
+        $categorycontext = context::instance_by_id($category->contextid);
+        $question->contextid = $category->contextid;
+        $addpermission = has_capability('moodle/question:add', $categorycontext);
+
+        $question->formoptions->canedit = question_has_capability_on($question, 'edit');
+        $question->formoptions->canmove = (question_has_capability_on($question, 'move') && $addpermission);
+        $question->formoptions->cansaveasnew = false;
+        $question->formoptions->repeatelements = true;
+        $formeditable = true;
+        require_capability('moodle/question:add', $categorycontext);
+        $question->formoptions->mustbeusable = (bool) $appendqnumstring;
+
+        $mform = $qtypeobj->create_editing_form('question.php', $question, $category, $contexts, $formeditable);
+
+        $toform = fullclone($question); // send the question object and a few more parameters to the form
+        $toform->category = "{$category->id},{$category->contextid}";
+        $toform->scrollpos = $scrollpos;
+        $toform->appendqnumstring = $appendqnumstring;
+        $toform->returnurl = $originalreturnurl;
+        $toform->makecopy = $makecopy;
+        $toform->cmid = $cm->id;
+        $toform->courseid = $cm->course;
+        $toform->inpopup = $inpopup;
+
+//        $mform->set_data($toform);
+        # FROMFORM GET DATA
+        $fromform = (object) array(
+            'category' => $bankcategory,
+            'name' => $params['questionname'],
+            'questiontext' => array (
+                'text' => $params['questiontext'],
+                'format' => '1',
+                'itemid' => 799800993,
+            ),
+            'defaultmark' => 1.0,
+            'generalfeedback' => array (
+                'text' => '',
+                'format' => '1',
+                'itemid' => 53083307,
+            ),
+            'idnumber' => '',
+            'single' => '1',
+            'shuffleanswers' => '1',
+            'answernumbering' => 'abc',
+            'showstandardinstruction' => '0',
+            'mform_isexpanded_id_answerhdr' => 1,
+            'noanswers' => 5,
+            'answer' =>array (
+                0 => array (
+                    'text' => $params['rightanswer'],
+                    'format' => '1',
+                    'itemid' => '416926977',
+                ),
+                1 => array (
+                    'text' => $params['wronganswer1'],
+                    'format' => '1',
+                    'itemid' => '755815724',
+                ),
+                2 => array (
+                    'text' => $params['wronganswer2']??'',
+                    'format' => '1',
+                    'itemid' => '134780169',
+                ),
+                3 => array (
+                    'text' => $params['wronganswer3']??'',
+                    'format' => '1',
+                    'itemid' => '674118576',
+                ),
+                4 => array (
+                    'text' => $params['wronganswer4']??'',
+                    'format' => '1',
+                    'itemid' => '988496155',
+                ),
+            ),
+            'fraction' => array (
+                0 => '1.0',
+                1 => '0.0',
+                2 => '0.0',
+                3 => '0.0',
+                4 => '0.0',
+            ),
+            'feedback' => array (
+                0 => array (
+                    'text' => '',
+                    'format' => '1',
+                    'itemid' => '522417974',
+                ),
+                1 => array (
+                    'text' => '',
+                    'format' => '1',
+                    'itemid' => '447290138',
+                ),
+                2 => array (
+                    'text' => '',
+                    'format' => '1',
+                    'itemid' => '601156581',
+                ),
+                3 => array (
+                    'text' => '',
+                    'format' => '1',
+                    'itemid' => '332800642',
+                ),
+                4 => array (
+                    'text' => '',
+                    'format' => '1',
+                    'itemid' => '613670132',
+                ),
+            ),
+            'correctfeedback' => array (
+                'text' => 'Your answer is correct.',
+                'format' => '1',
+                'itemid' => 509698846,
+            ),
+            'partiallycorrectfeedback' => array (
+                'text' => 'Your answer is partially correct.',
+                'format' => '1',
+                'itemid' => 384666222,
+            ),
+            'shownumcorrect' => 1,
+            'incorrectfeedback' => array (
+                'text' => 'Your answer is incorrect.',
+                'format' => '1',
+                'itemid' => 57813754,
+            ),
+            'penalty' => '0.3333333',
+            'numhints' => 2,
+            'hint' => array (
+                0 => array (
+                    'text' => '',
+                    'format' => '1',
+                    'itemid' => '155063996',
+                ),
+                1 => array (
+                    'text' => '',
+                    'format' => '1',
+                    'itemid' => '495148955',
+                ),
+            ),
+            'hintclearwrong' => array (
+                0 => 0,
+                1 => 0,
+            ),
+            'hintshownumcorrect' => array (
+                0 => 0,
+                1 => 0,
+            ),
+            'tags' =>  array (),
+            'coursetags' => array (),
+            'id' => 0,
+            'inpopup' => 0,
+            'cmid' => $cmid,
+            'courseid' => $courseid,
+            'returnurl' => '/mod/quiz/edit.php?cmid=106&cat=8%2C1&addonpage=0',
+            'scrollpos' => 0,
+            'appendqnumstring' => 'addquestion',
+            'qtype' => 'multichoice',
+            'makecopy' => 0,
+            'submitbutton' => 'Save changes',
+        );
+
+//        return ['value' => var_dump($fromform)];
+        # ini kalau hanya 2 pilgan
+        /* $fromform = {stdClass} [35]
+             category = "12,80"
+             name = "TEST 2 PILGAN"
+             questiontext = {array} [3]
+              text = "<p dir="ltr" style="text-align: left;">TEST ASSIGN QUESTION DESC</p>"
+              format = "1"
+              itemid = {int} 277758349
+             defaultmark = {float} 1.0
+             generalfeedback = {array} [3]
+              text = ""
+              format = "1"
+              itemid = {int} 433488857
+             idnumber = ""
+             single = "1"
+             shuffleanswers = "1"
+             answernumbering = "abc"
+             showstandardinstruction = "0"
+             mform_isexpanded_id_answerhdr = {int} 1
+             noanswers = {int} 5
+             answer = {array} [5]
+              0 = {array} [3]
+               text = "<p dir="ltr" style="text-align: left;">BENAR</p>"
+               format = "1"
+               itemid = "920816870"
+              1 = {array} [3]
+               text = "<p dir="ltr" style="text-align: left;">SALAH</p>"
+               format = "1"
+               itemid = "916276991"
+              2 = {array} [3]
+               text = ""
+               format = "1"
+               itemid = "417748132"
+              3 = {array} [3]
+               text = ""
+               format = "1"
+               itemid = "697441416"
+              4 = {array} [3]
+               text = ""
+               format = "1"
+               itemid = "229479859"
+             fraction = {array} [5]
+              0 = "1.0"
+              1 = "0.0"
+              2 = "0.0"
+              3 = "0.0"
+              4 = "0.0"
+             feedback = {array} [5]
+              0 = {array} [3]
+               text = ""
+               format = "1"
+               itemid = "698622455"
+              1 = {array} [3]
+               text = ""
+               format = "1"
+               itemid = "990166780"
+              2 = {array} [3]
+               text = ""
+               format = "1"
+               itemid = "69143818"
+              3 = {array} [3]
+               text = ""
+               format = "1"
+               itemid = "684108919"
+              4 = {array} [3]
+               text = ""
+               format = "1"
+               itemid = "754709135"
+             correctfeedback = {array} [3]
+              text = "Your answer is correct."
+              format = "1"
+              itemid = {int} 169334078
+             partiallycorrectfeedback = {array} [3]
+              text = "Your answer is partially correct."
+              format = "1"
+              itemid = {int} 37496180
+             shownumcorrect = {int} 1
+             incorrectfeedback = {array} [3]
+              text = "Your answer is incorrect."
+              format = "1"
+              itemid = {int} 764647200
+             penalty = "0.3333333"
+             numhints = {int} 2
+             hint = {array} [2]
+              0 = {array} [3]
+               text = ""
+               format = "1"
+               itemid = "131581850"
+              1 = {array} [3]
+               text = ""
+               format = "1"
+               itemid = "162429470"
+             hintclearwrong = {array} [2]
+              0 = {int} 0
+              1 = {int} 0
+             hintshownumcorrect = {array} [2]
+             tags = {array} [0]
+             id = {int} 0
+             inpopup = {int} 0
+             cmid = {int} 106
+             courseid = {int} 33
+             returnurl = "/mod/quiz/edit.php?cmid=106&addonpage=0"
+             scrollpos = {int} 0
+             appendqnumstring = "addquestion"
+             qtype = "multichoice"
+             makecopy = {int} 0
+             submitbutton = "Save changes" */
+
+        /// If we are moving a question, check we have permission to move it from
+        /// whence it came. (Where we are moving to is validated by the form.)
+        list($newcatid, $newcontextid) = explode(',', $fromform->category);
+
+        $contextid = $category->contextid;
+
+        require_capability('moodle/question:add', context::instance_by_id($contextid));
+
+        // If this is a new question, save defaults for user in user_preferences table.
+        if (empty($question->id)) {
+            $qtypeobj->save_defaults_for_new_questions($fromform);
+        }
+        $question = $qtypeobj->save_question($question, $fromform);
+
+        if (isset($fromform->tags)) {
+            // If we have any question context level tags then set those tags now.
+            core_tag_tag::set_item_tags('core_question', 'question', $question->id,
+                context::instance_by_id($contextid), $fromform->tags, 0);
+        }
+        if (isset($fromform->coursetags)) {
+            // If we have and course context level tags then set those now.
+            core_tag_tag::set_item_tags('core_question', 'question', $question->id,
+                context_course::instance($fromform->courseid), $fromform->coursetags, 0);
+        }
+        return ['value'=> var_dump($question)];
+
+        # Assign ke Module
+        self::assign_question_to_quiz($question->id,$toform->cmid);
+
     }
     public static function create_question_returns() {
+        return new external_single_structure(
+            array(
+                'value' => new external_value(PARAM_TEXT, ''),
+            )
+        );
+    }
+
+    public static function assign_question_to_quiz_parameters() {
+        return new external_function_parameters(
+            array(
+                'questionid' => new external_value(PARAM_INT, 'ID Question', VALUE_DEFAULT, null),
+                'cmid' => new external_value(PARAM_INT, 'ID Module', VALUE_DEFAULT, null),
+            )
+        );
+    }
+    public static function assign_question_to_quiz($questionid, $cmid){
+        $params = self::validate_parameters(self::assign_question_to_quiz_parameters(),
+            array(
+                'questionid' => $questionid,
+                'cmid' => $cmid,
+            ));
+
+        # GIMANA CARA ASSIGN QUESTION KE QUIZNYA
+
+        $baseurl = "/mod/quiz/edit.php";
+        $edittab = 'editq';
+        $parame = [
+            "cmid" => $params['cmid']
+        ];
+
+        list($thispageurl, $contexts, $cmid, $cm, $quiz, $pagevars) =
+            question_build_edit_resources($edittab, $baseurl, $parame);
+
+       quiz_add_quiz_question($params['questionid'], $quiz, $addonpage = 0);
+
+       return ['value'=>'SUKSES ASSIGN QUESTION'];
+    }
+    public static function assign_question_to_quiz_returns() {
         return new external_single_structure(
             array(
                 'value' => new external_value(PARAM_TEXT, ''),

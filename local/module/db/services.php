@@ -44,6 +44,14 @@ $functions = array(
         'capabilities'  => 'mod/quiz:view',
         'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
     ),
+    'local_module_assign_question_to_quiz' => array(
+        'classname'     => 'local_module_external',
+        'methodname'    => 'assign_question_to_quiz',
+        'description'   => 'Assign Question ke modul quiz',
+        'type'          => 'write',
+        'capabilities'  => 'mod/quiz:view',
+        'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
+    ),
     'local_module_create_page' => array(
         'classname'     => 'local_module_external',
         'methodname'    => 'create_page_module',
