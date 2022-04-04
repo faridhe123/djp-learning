@@ -50,7 +50,7 @@ class local_files_external extends external_api {
                 'itemid'    => new external_value(PARAM_INT, 'associated id'),
                 'filepath'  => new external_value(PARAM_PATH, 'file path'),
                 'filename'  => new external_value(PARAM_FILE, 'file name'),
-                'filecontent' => new external_value(PARAM_TEXT, 'file content'),
+                'filecontent' => new external_value(PARAM_TEXT, 'file content',VALUE_OPTIONAL),
                 'contextlevel' => new external_value(PARAM_ALPHA, 'The context level to put the file in,
                         (block, course, coursecat, system, user, module)', VALUE_DEFAULT, null),
                 'instanceid' => new external_value(PARAM_INT, 'The Instance id of item associated
@@ -197,7 +197,7 @@ class local_files_external extends external_api {
      * @return array
      * @since Moodle 2.2
      */
-    public static function upload($contextid, $component, $filearea, $itemid, $filepath, $filename, $filecontent, $contextlevel, $instanceid) {
+    public static function upload($contextid=null, $component, $filearea, $itemid, $filepath, $filename, $filecontent=null, $contextlevel, $instanceid) {
         global $USER, $CFG;
 
         $fileinfo = self::validate_parameters(self::upload_parameters(), array(
@@ -206,14 +206,14 @@ class local_files_external extends external_api {
             'instanceid' => $instanceid));
 
         # ganti sistem filecontent tidak perlu menggunanaka base64
-        if (!isset($fileinfo['filecontent'])) {
-            throw new moodle_exception('nofile');
-        }
+//        if (!isset($fileinfo['filecontent'])) {
+//            throw new moodle_exception('nofile');
+//        }
 
         // Saving file.
         $dir = make_temp_directory('wsupload').'/';
 
-        $elname = 'file_1';
+        $elname = 'file';
 
         if(!empty($_FILES)){
             $filename = $_FILES[$elname]['name'];
@@ -285,10 +285,15 @@ class local_files_external extends external_api {
 //        }
         $browser = get_file_browser();
 
+        $storage = get_file_storage();
+
+
         // Check existing file.
         if ($file = $browser->get_file_info($context, $component, $filearea, $itemid, $filepath, $filename)) {
             throw new moodle_exception('fileexist');
         }
+
+//        return ['value' => var_dump($browser->get_file_info($context, $component, $filearea, $itemid, $filepath, '.'))];
 
         // Move file to filepool.
         if ($dir = $browser->get_file_info($context, $component, $filearea, $itemid, $filepath, '.')) {
@@ -336,13 +341,13 @@ class local_files_external extends external_api {
         /**
          * TEST RETURNS
          */
-    //    public static function upload_returns() {
-    //        return new external_single_structure(
-    //            array(
-    //                'value' => new external_value(PARAM_TEXT, ''),
-    //            )
-    //        );
-    //    }
+//        public static function upload_returns() {
+//            return new external_single_structure(
+//                array(
+//                    'value' => new external_value(PARAM_TEXT, ''),
+//                )
+//            );
+//        }
 
 
 
