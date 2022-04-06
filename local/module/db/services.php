@@ -33,7 +33,13 @@ $functions = array(
         'methodname'    => 'create_module',
         'description'   => 'membuat Activity module Sesuai modulename',
         'type'          => 'write',
-        'capabilities'  => 'mod/quiz:view',
+        'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
+    ),
+    'local_module_update_module' => array(
+        'classname'     => 'local_module_external',
+        'methodname'    => 'update_module',
+        'description'   => 'Update atau edit module yang telah dibuat ',
+        'type'          => 'write',
         'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
     ),
     'local_module_create_question' => array(
@@ -41,7 +47,6 @@ $functions = array(
         'methodname'    => 'create_question',
         'description'   => 'membuat Question',
         'type'          => 'write',
-        'capabilities'  => 'mod/quiz:view',
         'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
     ),
     'local_module_assign_question_to_quiz' => array(
@@ -49,9 +54,12 @@ $functions = array(
         'methodname'    => 'assign_question_to_quiz',
         'description'   => 'Assign Question ke modul quiz',
         'type'          => 'write',
-        'capabilities'  => 'mod/quiz:view',
         'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
     ),
+
+
+    # Sudah tidak dipakai
+
     'local_module_create_page' => array(
         'classname'     => 'local_module_external',
         'methodname'    => 'create_page_module',

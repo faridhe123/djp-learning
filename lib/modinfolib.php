@@ -232,9 +232,9 @@ class course_modinfo {
      * @throws moodle_exception If the course-module does not exist
      */
     public function get_cm($cmid) {
-        if (empty($this->cms[$cmid])) {
-            throw new moodle_exception('invalidcoursemodule', 'error');
-        }
+//        if (empty($this->cms[$cmid])) {
+//            throw new moodle_exception('invalidcoursemodule', 'error');
+//        }
         return $this->cms[$cmid];
     }
 

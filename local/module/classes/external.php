@@ -27,8 +27,14 @@
 defined('MOODLE_INTERNAL') || die;
 
 //require_once("../../../config.php");
+/*CORE LIB*/
 require_once($CFG->libdir . '/externallib.php');
 require_once($CFG->libdir.'/filelib.php');
+require_once($CFG->libdir . '/gradelib.php');
+require_once($CFG->libdir . '/completionlib.php');
+require_once($CFG->libdir . '/plagiarismlib.php');
+
+/*MOD LIB*/
 require_once($CFG->dirroot . '/mod/page/locallib.php');
 require_once($CFG->dirroot . '/course/modlib.php');
 require_once($CFG->dirroot . '/question/editlib.php');
@@ -52,13 +58,91 @@ class local_module_external extends external_api {
      * @return external_function_parameters
      * @since Moodle 2.2
      */
-//    public static function create_page_module_parameters() {
+//    public static function update_module_parameters() {
 //        return new external_function_parameters(
 //            array(
 //                'parameter' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
 //            )
 //        );
 //    }
+
+    /**
+     * EDIT MODULE
+     *
+     */
+    public static function update_module_parameters() {
+        return new external_function_parameters(
+            array(
+                'cmid' => new external_value(PARAM_INT, 'page, quiz, scorm, h5p', VALUE_DEFAULT, null),
+                'courseid' => new external_value(PARAM_INT, 'ID Dari Course', VALUE_DEFAULT, null),
+                'section' => new external_value(PARAM_INT, 'urutan section/topic, default: 1', VALUE_DEFAULT, null),
+                'name' => new external_value(PARAM_TEXT, 'Nama Module Activity', VALUE_DEFAULT, null),
+                'intro' => new external_value(PARAM_RAW, 'Deskripsi dari module yang akan dibuat', VALUE_DEFAULT, null),
+                'content' => new external_value(PARAM_RAW, 'Content', VALUE_DEFAULT, null),
+            )
+        );
+    }
+    public static function update_module($cmid,$courseid,$section,$name,$intro,$content=null) {
+        global $DB, $USER,$CFG;
+
+        $params = self::validate_parameters(self::update_module_parameters(),
+            array(
+                'cmid' => $cmid,
+                'courseid' => $courseid,
+                'section' => $section,
+                'name' => $name,
+                'intro' => $intro,
+                'content' => $content,
+            ));
+
+        $update = $params['cmid'];
+
+        // Check the course module exists.
+        $cm = get_coursemodule_from_id('', $update, 0, false, MUST_EXIST);
+
+        // Check the course exists.
+        $course = $DB->get_record('course', array('id'=>$cm->course), '*', MUST_EXIST);
+
+        list($cm, $context, $module, $data, $cw) = get_moduleinfo_data($cm, $course);
+
+        $data->return = 0;
+        $data->sr = null;
+        $data->update = $update;
+
+        $sectionname = get_section_name($course, $cw);
+        $fullmodulename = get_string('modulename', $module->name);
+
+        $modmoodleform = "$CFG->dirroot/mod/$module->name/mod_form.php";
+
+        if (file_exists($modmoodleform)) {
+            require_once($modmoodleform);
+        } else {
+            print_error('noformdesc');
+        }
+        $pagepath = 'mod-' . $module->name . '-';
+        $mformclassname = 'mod_'.$module->name.'_mod_form';
+        $mform = new $mformclassname($data, $cw->section, $cm, $course);
+        $mform->set_data($data);
+
+        # Switch untuk data form
+        switch ($fullmodulename) {
+            case 'Page':
+                $fromform = self::process_page_update($params['name'],$params['intro'],$params['section'],$params['content']);
+                break;
+            default:
+                print_error('Fungsi belum ada');
+        }
+        list($cm, $fromform) = update_moduleinfo($cm, $fromform, $course, $mform);
+
+        return ['value'=> var_dump($fromform)];
+    }
+    public static function update_module_returns() {
+        return new external_single_structure(
+            array(
+                'value' => new external_value(PARAM_TEXT, ''),
+            )
+        );
+    }
 
     /**
      * CREATE MODULE
@@ -142,7 +226,7 @@ class local_module_external extends external_api {
     }
 
     /**
-     * FUNGSI PER MODUL ACTIVITY
+     * PROSES DATA FORM untuk setiap jenis module
      *
      */
     static function process_page_data($name,$intro,$section,$content) {
@@ -186,6 +270,56 @@ class local_module_external extends external_api {
             'submitbutton2' => "Save and return to course",
             'revision' => 1,
         ];
+
+        return $data;
+    }
+    static function process_page_update($name,$intro,$section,$content) {
+        $data = (object) array(
+            'name' => $name,
+            'introeditor' =>
+                array (
+                    'text' => $intro,
+                    'format' => '1',
+                    'itemid' => 113747692,
+                ),
+            'showdescription' => '0',
+            'page' =>
+                array (
+                    'text' => $content,
+                    'format' => '1',
+                    'itemid' => 539497641,
+                ),
+            'display' => 5,
+            'printheading' => '1',
+            'printintro' => '0',
+            'printlastmodified' => '1',
+            'visible' => 1,
+            'visibleoncoursepage' => 1,
+            'cmidnumber' => '',
+            'availabilityconditionsjson' => '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}',
+            'completionunlocked' => 1,
+            'completion' => '1',
+            'completionexpected' => 0,
+            'tags' =>
+                array (
+                ),
+            'course' => 39,
+            'coursemodule' => 202,
+            'section' => $section,
+            'module' => 16,
+            'modulename' => 'page',
+            'instance' => 25,
+            'add' => '0',
+            'update' => 202,
+            'return' => 1,
+            'sr' => 0,
+            'competencies' =>
+                array (
+                ),
+            'competency_rule' => '0',
+            'submitbutton2' => 'Save and return to course',
+            'revision' => 3,
+        );
 
         return $data;
     }
@@ -524,29 +658,11 @@ class local_module_external extends external_api {
      * CREATE QUESTION
      *
      */
-    public static function create_question_parameters() {
-        return new external_function_parameters(
-            array(
-//                'parameter' => new external_value(PARAM_TEXT, 'test parameter', VALUE_DEFAULT, null),
-                'coursecat' => new external_value(PARAM_INT, 'test parameter', VALUE_DEFAULT, null),
-                'courseid' => new external_value(PARAM_INT, 'test parameter', VALUE_DEFAULT, null),
-                'cmid' => new external_value(PARAM_INT, 'test parameter', VALUE_DEFAULT, null),
-                'bankcategory' => new external_value(PARAM_TEXT, 'system,coursecat,course,module', VALUE_DEFAULT, null),
-                'questionname' => new external_value(PARAM_TEXT, 'Nama pertanyaan', VALUE_DEFAULT, null),
-                'questiontext' => new external_value(PARAM_TEXT, 'Text pertanyaan', VALUE_DEFAULT, null),
-                'rightanswer' => new external_value(PARAM_TEXT, 'Jawaban benar', VALUE_DEFAULT, null),
-                'wronganswer1' => new external_value(PARAM_TEXT, 'Jawaban salah', VALUE_DEFAULT, null),
-                'wronganswer2' => new external_value(PARAM_TEXT, 'Jawaban salah', VALUE_OPTIONAL, null),
-                'wronganswer3' => new external_value(PARAM_TEXT, 'Jawaban salah', VALUE_OPTIONAL, null),
-                'wronganswer4' => new external_value(PARAM_TEXT, 'Jawaban salah', VALUE_OPTIONAL, null),
-            )
-        );
-    }
     public static function create_question(
-        $coursecat=null,$courseid=null,$cmid=null,$bankcategory,
-        $questionname,$questiontext,$rightanswer,$wronganswer1,
-        $wronganswer2=null,$wronganswer3=null,$wronganswer4=null
-    ) {
+        $bankcategory,$questionname,$questiontext,$rightanswer,$wronganswer1,
+        $wronganswer2=null,$wronganswer3=null,$wronganswer4=null,$coursecat=null,$courseid=null,$cmid=null
+    )
+    {
         global $DB, $USER;
         $params = self::validate_parameters(self::create_question_parameters(),
             array(
@@ -752,8 +868,10 @@ class local_module_external extends external_api {
         }
         $question = $qtypeobj->save_question($question, $data);
         return ['value'=> var_dump($question)];
+
         # Assign ke Module
         self::assign_question_to_quiz($question->id,$toform->cmid);
+
     }
     public static function create_question_returns() {
         return new external_single_structure(
@@ -762,12 +880,34 @@ class local_module_external extends external_api {
             )
         );
     }
-
     public static function assign_question_to_quiz_parameters() {
         return new external_function_parameters(
             array(
                 'questionid' => new external_value(PARAM_INT, 'ID Question', VALUE_DEFAULT, null),
                 'cmid' => new external_value(PARAM_INT, 'ID Module', VALUE_DEFAULT, null),
+            )
+        );
+    }
+
+    /**
+     * ASSIGN QUESTION TO QUIZ MODULE
+     *
+     */
+    public static function create_question_parameters() {
+        return new external_function_parameters(
+            array(
+//                'parameter' => new external_value(PARAM_TEXT, 'test parameter', VALUE_DEFAULT, null),
+                'bankcategory' => new external_value(PARAM_TEXT, 'system,coursecat,course,module', VALUE_DEFAULT, null),
+                'questionname' => new external_value(PARAM_TEXT, 'Nama pertanyaan', VALUE_DEFAULT, null),
+                'questiontext' => new external_value(PARAM_TEXT, 'Text pertanyaan', VALUE_DEFAULT, null),
+                'rightanswer' => new external_value(PARAM_TEXT, 'Jawaban benar', VALUE_DEFAULT, null),
+                'wronganswer1' => new external_value(PARAM_TEXT, 'Jawaban salah', VALUE_DEFAULT, null),
+                'wronganswer2' => new external_value(PARAM_TEXT, 'Jawaban salah', VALUE_OPTIONAL, null),
+                'wronganswer3' => new external_value(PARAM_TEXT, 'Jawaban salah', VALUE_OPTIONAL, null),
+                'wronganswer4' => new external_value(PARAM_TEXT, 'Jawaban salah', VALUE_OPTIONAL, null),
+                'coursecat' => new external_value(PARAM_INT, 'test parameter', VALUE_DEFAULT, null),
+                'courseid' => new external_value(PARAM_INT, 'test parameter', VALUE_DEFAULT, null),
+                'cmid' => new external_value(PARAM_INT, 'test parameter', VALUE_DEFAULT, null),
             )
         );
     }
@@ -801,21 +941,12 @@ class local_module_external extends external_api {
         );
     }
 
-    /**
-     * CREATE PAGE MODULE
-     *
-     */
-    public static function create_page_module_parameters() {
-        return new external_function_parameters(
-            array(
-                'courseid' => new external_value(PARAM_INT, 'context id', VALUE_DEFAULT, null),
-                'section' => new external_value(PARAM_INT, 'context id', VALUE_DEFAULT, null),
-                'name' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
-                'intro' => new external_value(PARAM_RAW, 'context id', VALUE_DEFAULT, null),
-                'content' => new external_value(PARAM_RAW, 'context id', VALUE_DEFAULT, null),
-            )
-        );
-    }
+
+
+
+
+
+
     public static function create_page_module($courseid,$section,$name,$intro,$content) {
         global $DB, $USER,$CFG;
 
@@ -980,6 +1111,22 @@ class local_module_external extends external_api {
 
         return ['value'=> var_dump($fromform)];
     }
+    /**
+     * CREATE PAGE MODULE@deprecated
+     *
+     *
+     */
+    public static function create_page_module_parameters() {
+        return new external_function_parameters(
+            array(
+                'courseid' => new external_value(PARAM_INT, 'context id', VALUE_DEFAULT, null),
+                'section' => new external_value(PARAM_INT, 'context id', VALUE_DEFAULT, null),
+                'name' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
+                'intro' => new external_value(PARAM_RAW, 'context id', VALUE_DEFAULT, null),
+                'content' => new external_value(PARAM_RAW, 'context id', VALUE_DEFAULT, null),
+            )
+        );
+    }
     public static function create_page_module_returns() {
         return new external_single_structure(
             array(
@@ -988,20 +1135,6 @@ class local_module_external extends external_api {
         );
     }
 
-    /**
-     * CREATE QUIZ MODULE
-     *
-     */
-    public static function create_quiz_module_parameters() {
-        return new external_function_parameters(
-            array(
-                'courseid' => new external_value(PARAM_INT, 'context id', VALUE_DEFAULT, null),
-                'section' => new external_value(PARAM_INT, 'context id', VALUE_DEFAULT, null),
-                'name' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
-                'intro' => new external_value(PARAM_RAW, 'context id', VALUE_DEFAULT, null),
-            )
-        );
-    }
     public static function create_quiz_module($courseid,$section,$name,$intro) {
         global $DB, $USER,$CFG;
 
@@ -1169,19 +1302,11 @@ class local_module_external extends external_api {
 
         return ['value'=> var_dump($fromform)];
     }
-    public static function create_quiz_module_returns() {
-        return new external_single_structure(
-            array(
-                'value' => new external_value(PARAM_TEXT, ''),
-            )
-        );
-    }
-
     /**
-     * CREATE SCORM MODULE
+     * CREATE QUIZ MODULE@deprecated
      *
      */
-    public static function create_scorm_module_parameters() {
+    public static function create_quiz_module_parameters() {
         return new external_function_parameters(
             array(
                 'courseid' => new external_value(PARAM_INT, 'context id', VALUE_DEFAULT, null),
@@ -1191,6 +1316,14 @@ class local_module_external extends external_api {
             )
         );
     }
+    public static function create_quiz_module_returns() {
+        return new external_single_structure(
+            array(
+                'value' => new external_value(PARAM_TEXT, ''),
+            )
+        );
+    }
+
     public static function create_scorm_module($courseid,$section,$name,$intro) {
         global $DB, $USER,$CFG;
 
@@ -1312,6 +1445,20 @@ class local_module_external extends external_api {
         $fromform = add_moduleinfo($data, $course,$mform);
 
         return ['value'=> var_dump($fromform)];
+    }
+    /**
+     * CREATE SCORM MODULE@deprecated
+     *
+     */
+    public static function create_scorm_module_parameters() {
+        return new external_function_parameters(
+            array(
+                'courseid' => new external_value(PARAM_INT, 'context id', VALUE_DEFAULT, null),
+                'section' => new external_value(PARAM_INT, 'context id', VALUE_DEFAULT, null),
+                'name' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
+                'intro' => new external_value(PARAM_RAW, 'context id', VALUE_DEFAULT, null),
+            )
+        );
     }
     public static function create_scorm_module_returns() {
         return new external_single_structure(
