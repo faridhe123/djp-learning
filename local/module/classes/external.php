@@ -543,10 +543,11 @@ class local_module_external extends external_api {
         );
     }
     public static function create_question(
-        $coursecat=null,$courseid=null,$cmid=null,$bankcategory,$questionname,$questiontext,$rightanswer,$wronganswer1,$wronganswer2=null,$wronganswer3=null,$wronganswer4=null
+        $coursecat=null,$courseid=null,$cmid=null,$bankcategory,
+        $questionname,$questiontext,$rightanswer,$wronganswer1,
+        $wronganswer2=null,$wronganswer3=null,$wronganswer4=null
     ) {
         global $DB, $USER;
-
         $params = self::validate_parameters(self::create_question_parameters(),
             array(
                 'coursecat' => $coursecat,
@@ -561,7 +562,6 @@ class local_module_external extends external_api {
                 'wronganswer3' => $wronganswer3,
                 'wronganswer4' => $wronganswer4,
             ));
-
         # BUAT PARAM DUMMY
         $makecopy = 0;
         $qtype = "multichoice";
@@ -571,20 +571,11 @@ class local_module_external extends external_api {
         $scrollpos = 0 ;
         # Ada beberapa ketegori yang bisa dipakai
         switch ($params['bankcategory']) {
-            case 'system':
-                $kat_q = 1;
-                break;
-            case 'coursecat':
-                $kat_q = context_coursecat::instance($params['coursecat'])->id;
-                break;
-            case 'course':
-                $kat_q = context_course::instance($params['courseid'])->id;
-                break;
-            case 'module':
-                $kat_q = context_module::instance($params['cmid'])->id;
-                break;
-            default:
-                print_error('Fungsi belum ada');
+            case 'system': $kat_q = 1;  break;
+            case 'coursecat':$kat_q = context_coursecat::instance($params['coursecat'])->id;    break;
+            case 'course':$kat_q = context_course::instance($params['courseid'])->id;   break;
+            case 'module':$kat_q = context_module::instance($params['cmid'])->id;   break;
+            default:print_error('Fungsi belum ada');
         }
         $kategorinya = $DB->get_records('question_categories', array('contextid' => $kat_q));
         foreach ($kategorinya as $kategori) {
@@ -761,10 +752,8 @@ class local_module_external extends external_api {
         }
         $question = $qtypeobj->save_question($question, $data);
         return ['value'=> var_dump($question)];
-
         # Assign ke Module
         self::assign_question_to_quiz($question->id,$toform->cmid);
-
     }
     public static function create_question_returns() {
         return new external_single_structure(
@@ -772,9 +761,6 @@ class local_module_external extends external_api {
                 'value' => new external_value(PARAM_TEXT, ''),
             )
         );
-    }
-
-    static function process_question_data(){
     }
 
     public static function assign_question_to_quiz_parameters() {
