@@ -49,7 +49,7 @@ class local_files_external extends external_api {
                 'filearea'  => new external_value(PARAM_AREA, 'file area'),
                 'itemid'    => new external_value(PARAM_INT, 'associated id'),
                 'filepath'  => new external_value(PARAM_PATH, 'file path'),
-                'filename'  => new external_value(PARAM_FILE, 'file name'),
+                'filename'  => new external_value(PARAM_FILE, 'file name', VALUE_DEFAULT,null),
                 'filecontent' => new external_value(PARAM_TEXT, 'file content',VALUE_OPTIONAL),
                 'contextlevel' => new external_value(PARAM_ALPHA, 'The context level to put the file in,
                         (block, course, coursecat, system, user, module)', VALUE_DEFAULT, null),
@@ -197,7 +197,7 @@ class local_files_external extends external_api {
      * @return array
      * @since Moodle 2.2
      */
-    public static function upload($contextid=null, $component, $filearea, $itemid, $filepath, $filename, $filecontent=null, $contextlevel, $instanceid) {
+    public static function upload($contextid=null, $component, $filearea, $itemid, $filepath, $filename=null, $filecontent=null, $contextlevel, $instanceid) {
         global $USER, $CFG;
 
         $fileinfo = self::validate_parameters(self::upload_parameters(), array(
@@ -215,13 +215,23 @@ class local_files_external extends external_api {
 
         $elname = 'file';
 
-        if(!empty($_FILES)){
-            $filename = $_FILES[$elname]['name'];
-        }
-        elseif (empty($fileinfo['filename'])) {
-            $filename = uniqid('wsupload', true).'_'.time().'.tmp';
-        } else {
+        # penamaan , dedprecated
+//        if(!empty($_FILES)){
+//            $filename = $_FILES[$elname]['name'];
+//        }
+//        elseif (empty($fileinfo['filename'])) {
+//            $filename = uniqid('wsupload', true).'_'.time().'.tmp';
+//        } else {
+//            $filename = $fileinfo['filename'];
+//        }
+
+
+        if (!empty($fileinfo['filename'])) {
             $filename = $fileinfo['filename'];
+        }elseif(!empty($_FILES)){
+            $filename = $_FILES[$elname]['name'];
+        } else {
+            $filename = uniqid('wsupload', true).'_'.time().'.tmp';
         }
 
         if (file_exists($dir.$filename)) {

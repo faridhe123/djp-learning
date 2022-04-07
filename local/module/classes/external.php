@@ -82,7 +82,7 @@ class local_module_external extends external_api {
             )
         );
     }
-    public static function update_module($cmid,$courseid,$section,$name,$intro,$content=null) {
+    public static function update_module($cmid,$courseid,$section=null,$name,$intro,$content=null) {
         global $DB, $USER,$CFG;
 
         $params = self::validate_parameters(self::update_module_parameters(),
@@ -109,7 +109,7 @@ class local_module_external extends external_api {
         $data->sr = null;
         $data->update = $update;
 
-        $sectionname = get_section_name($course, $cw);
+//        $sectionname = get_section_name($course, $cw);
         $fullmodulename = get_string('modulename', $module->name);
 
         $modmoodleform = "$CFG->dirroot/mod/$module->name/mod_form.php";
@@ -123,11 +123,34 @@ class local_module_external extends external_api {
         $mformclassname = 'mod_'.$module->name.'_mod_form';
         $mform = new $mformclassname($data, $cw->section, $cm, $course);
         $mform->set_data($data);
-
         # Switch untuk data form
-        switch ($fullmodulename) {
-            case 'Page':
-                $fromform = self::process_page_update($params['name'],$params['intro'],$params['section'],$params['content']);
+        switch (strtolower($fullmodulename)) {
+            case 'page':
+                $fromform = self::process_page_update($params['cmid'],$module->name,$params['name'],$params['intro'],$params['section'],$params['content']);
+                break;
+            case 'quiz':
+                $fromform = self::process_quiz_update($params['cmid'],$module->name,$params['name'],$params['intro'],$params['section']);
+                break;
+            case 'scorm package':
+                $allowed = array('zip');
+                $multiple = 0;
+                if($_FILES)$packagefiles = self::process_draft_files($_FILES,$allowed,$multiple);
+                else $packagefiles =null;
+                $fromform = self::process_scorm_update($params['cmid'],$module->name,$params['name'],$params['intro'],$params['section'],$packagefiles);
+                break;
+            case 'h5p':
+                $allowed = array('h5p');
+                $multiple = 0;
+                if($_FILES)$packagefiles = self::process_draft_files($_FILES,$allowed,$multiple);
+                else $packagefiles =null;
+                $fromform = self::process_h5p_update($params['cmid'],$module->name,$params['name'],$params['intro'],$params['section'],$packagefiles);
+                break;
+            case 'ompdf':
+                $allowed = array('pdf');
+                $multiple = 1;
+                if($_FILES)$packagefiles = self::process_draft_files($_FILES,$allowed,$multiple);
+                else $packagefiles =null;
+                $fromform = self::process_ompdf_update($params['cmid'],$module->name,$params['name'],$params['intro'],$params['section'],$packagefiles);
                 break;
             default:
                 print_error('Fungsi belum ada');
@@ -189,7 +212,6 @@ class local_module_external extends external_api {
         $mformclassname = 'mod_'.$module->name.'_mod_form';
         $mform = new $mformclassname($data, $cw->section, $cm, $course);
         $mform->set_data($data);
-
         # Switch untuk data form
         switch ($modulename) {
             case 'page':
@@ -200,13 +222,21 @@ class local_module_external extends external_api {
                 break;
             case 'scorm':
                 $allowed = array('zip');
-                $packagefiles = self::process_draft_files($_FILES,$allowed);
+                $multiple = 0;
+                $packagefiles = self::process_draft_files($_FILES,$allowed,$multiple);
                 $data = self::process_scorm_data($params['name'],$params['intro'],$params['section'],$packagefiles);
                 break;
             case 'h5pactivity':
                 $allowed = array('h5p');
-                $packagefiles = self::process_draft_files($_FILES,$allowed);
+                $multiple = 0;
+                $packagefiles = self::process_draft_files($_FILES,$allowed,$multiple);
                 $data = self::process_h5p_data($params['name'],$params['intro'],$params['section'],$packagefiles);
+                break;
+            case 'ompdf':
+                $allowed = array('pdf');
+                $multiple = 1;
+                $packagefiles = self::process_draft_files($_FILES,$allowed,$multiple);
+                $data = self::process_ompdf_data($params['name'],$params['intro'],$params['section'],$packagefiles);
                 break;
             default:
                 print_error('Fungsi belum ada');
@@ -226,9 +256,9 @@ class local_module_external extends external_api {
     }
 
     /**
-     * PROSES DATA FORM untuk setiap jenis module
-     *
-     */
+* PROSES DATA FORM untuk setiap jenis module
+*
+*/
     static function process_page_data($name,$intro,$section,$content) {
         $data = (object) [
             # biasa diedit
@@ -273,7 +303,7 @@ class local_module_external extends external_api {
 
         return $data;
     }
-    static function process_page_update($name,$intro,$section,$content) {
+    static function process_page_update($cmid,$modulename,$name,$intro,$section,$content) {
         $data = (object) array(
             'name' => $name,
             'introeditor' =>
@@ -303,14 +333,14 @@ class local_module_external extends external_api {
             'tags' =>
                 array (
                 ),
-            'course' => 39,
-            'coursemodule' => 202,
-            'section' => $section,
-            'module' => 16,
-            'modulename' => 'page',
-            'instance' => 25,
+//            'course' => $courseid,
+            'coursemodule' => $cmid,
+//            'section' => $section,
+//            'module' => 16,
+            'modulename' => $modulename,
+//            'instance' => $instance,
             'add' => '0',
-            'update' => 202,
+            'update' => $cmid,
             'return' => 1,
             'sr' => 0,
             'competencies' =>
@@ -440,6 +470,122 @@ class local_module_external extends external_api {
 
         return $data;
     }
+    static function process_quiz_update($cmid,$modulename,$name,$intro,$section) {
+        $data = (object) array(
+            'name' => $name,
+            'introeditor' =>
+                array (
+                    'text' => $intro,
+                    'format' => '1',
+                    'itemid' => 189707275,
+                ),
+            'showdescription' => '0',
+            'timeopen' => 0,
+            'timeclose' => 0,
+            'timelimit' => 0,
+            'overduehandling' => 'autosubmit',
+            'graceperiod' => 0,
+            'gradecat' => '1',
+            'gradepass' => 0.0,
+            'grade' => 10.0,
+            'attempts' => '0',
+            'grademethod' => '1',
+            'questionsperpage' => '1',
+            'navmethod' => 'free',
+            'shuffleanswers' => '1',
+            'preferredbehaviour' => 'deferredfeedback',
+            'canredoquestions' => '0',
+            'attemptonlast' => '0',
+            'attemptimmediately' => '1',
+            'correctnessimmediately' => '1',
+            'marksimmediately' => '1',
+            'specificfeedbackimmediately' => '1',
+            'generalfeedbackimmediately' => '1',
+            'rightanswerimmediately' => '1',
+            'overallfeedbackimmediately' => '1',
+            'attemptopen' => '1',
+            'correctnessopen' => '1',
+            'marksopen' => '1',
+            'specificfeedbackopen' => '1',
+            'generalfeedbackopen' => '1',
+            'rightansweropen' => '1',
+            'overallfeedbackopen' => '1',
+            'showuserpicture' => '0',
+            'decimalpoints' => '2',
+            'questiondecimalpoints' => '-1',
+            'showblocks' => '0',
+            'seb_requiresafeexambrowser' => '0',
+            'filemanager_sebconfigfile' => 646406835,
+            'seb_showsebdownloadlink' => '1',
+            'seb_linkquitseb' => '',
+            'seb_userconfirmquit' => '1',
+            'seb_allowuserquitseb' => '1',
+            'seb_quitpassword' => '',
+            'seb_allowreloadinexam' => '1',
+            'seb_showsebtaskbar' => '1',
+            'seb_showreloadbutton' => '1',
+            'seb_showtime' => '1',
+            'seb_showkeyboardlayout' => '1',
+            'seb_showwificontrol' => '0',
+            'seb_enableaudiocontrol' => '0',
+            'seb_muteonstartup' => '0',
+            'seb_allowspellchecking' => '0',
+            'seb_activateurlfiltering' => '0',
+            'seb_filterembeddedcontent' => '0',
+            'seb_expressionsallowed' => '',
+            'seb_regexallowed' => '',
+            'seb_expressionsblocked' => '',
+            'seb_regexblocked' => '',
+            'seb_allowedbrowserexamkeys' => '',
+            'quizpassword' => '',
+            'subnet' => '',
+            'delay1' => 0,
+            'delay2' => 0,
+            'browsersecurity' => '-',
+            'boundary_repeats' => 0,
+            'feedbacktext' =>
+                array (
+                    0 =>
+                        array (
+                            'text' => '',
+                            'format' => '1',
+                            'itemid' => 231212486,
+                        ),
+                ),
+            'visible' => 1,
+            'visibleoncoursepage' => 1,
+            'cmidnumber' => '',
+            'groupmode' => '0',
+            'groupingid' => '0',
+            'availabilityconditionsjson' => '{"op":"&","c":[],"showc":[]}',
+            'completionunlocked' => 1,
+            'completion' => '1',
+            'completionpass' => 0,
+            'completionattemptsexhausted' => 0,
+            'completionminattempts' => 0,
+            'completionexpected' => 0,
+            'tags' =>
+                array (
+                ),
+//            'course' => 30,
+            'coursemodule' => $cmid,
+//            'section' => 1,
+//            'module' => 17,
+            'modulename' => $modulename,
+//            'instance' => 1,
+            'add' => '0',
+            'update' => $cmid,
+            'return' => 1,
+            'sr' => 0,
+            'competencies' =>
+                array (
+                ),
+            'competency_rule' => '0',
+            'submitbutton' => 'Save and display',
+        );
+
+        return $data;
+    }
     static function process_scorm_data($name,$intro,$section,$packagefiles) {
         $data = (object) [
             # UNTUK PARAMETER
@@ -511,6 +657,85 @@ class local_module_external extends external_api {
             "completionstatusrequired" => null,
         ];
 
+        return $data;
+    }
+    static function process_scorm_update($cmid,$modulename,$name,$intro,$section,$packagefiles=null) {
+        $data = (object) array(
+            'name' => $name,
+            'introeditor' =>
+                array (
+                    'text' => $intro,
+                    'format' => '1',
+                    'itemid' => 301386305,
+                ),
+            'showdescription' => '0',
+            'mform_isexpanded_id_packagehdr' => 1,
+            'scormtype' => 'local',
+//            'packagefile' => $packagefiles,
+            'updatefreq' => '0',
+            'popup' => '0',
+            'width' => '100%',
+            'height' => '500',
+            'displayactivityname' => '1',
+            'skipview' => '0',
+            'hidebrowse' => '0',
+            'displaycoursestructure' => '0',
+            'hidetoc' => '0',
+            'nav' => '1',
+            'navpositionleft' => '-100',
+            'navpositiontop' => '-100',
+            'displayattemptstatus' => '1',
+            'timeopen' => 0,
+            'timeclose' => 0,
+            'grademethod' => '1',
+            'maxgrade' => '100',
+            'maxattempt' => '0',
+            'whatgrade' => '0',
+            'forcenewattempt' => '0',
+            'lastattemptlock' => '0',
+            'forcecompleted' => '0',
+            'auto' => '0',
+            'autocommit' => '0',
+            'masteryoverride' => '1',
+            'datadir' => '6',
+            'pkgtype' => 'scorm',
+            'launch' => '95',
+            'redirect' => 'no',
+            'redirecturl' => 'http://localhost/djp-learning-git/mod/scorm/view.php?id=183',
+            'visible' => 1,
+            'visibleoncoursepage' => 1,
+            'cmidnumber' => '',
+            'groupmode' => '0',
+            'groupingid' => '0',
+            'availabilityconditionsjson' => '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}',
+            'completionunlocked' => 1,
+            'completion' => '1',
+            'completionscorerequired' => NULL,
+            'completionexpected' => 0,
+            'tags' =>
+                array (
+                ),
+//            'course' => 39,
+            'coursemodule' => $cmid,
+//            'section' => 1,
+//            'module' => 19,
+            'modulename' => $modulename,
+//            'instance' => 6,
+            'add' => '0',
+            'update' => $cmid,
+            'return' => 1,
+            'sr' => 0,
+            'competencies' =>
+                array (
+                ),
+            'competency_rule' => '0',
+            'submitbutton' => 'Save and display',
+            'completionstatusrequired' => NULL,
+        );
+
+        if($packagefiles) {
+            $data->packagefile = $packagefiles;
+        }
         return $data;
     }
     static function process_h5p_data($name,$intro,$section,$packagefiles) {
@@ -603,55 +828,200 @@ class local_module_external extends external_api {
 
         return $data;
     }
+    static function process_h5p_update($cmid,$modulename,$name,$intro,$section,$packagefiles=null) {
+        $data = (object) array(
+            'name' => $name,
+            'introeditor' =>
+                array (
+                    'text' => $intro,
+                    'format' => '1',
+                    'itemid' => 808582194,
+                ),
+            'showdescription' => '0',
+            'grade' => 100,
+            'grade_rescalegrades' => NULL,
+            'gradecat' => '4',
+            'gradepass' => 70.0,
+            'enabletracking' => '1',
+            'grademethod' => '1',
+            'reviewmode' => '1',
+            'visible' => 1,
+            'visibleoncoursepage' => 1,
+            'cmidnumber' => '',
+            'groupmode' => '0',
+            'groupingid' => '0',
+            'availabilityconditionsjson' => '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}',
+            'completionunlocked' => 1,
+            'completion' => '2',
+            'completionusegrade' => '1',
+            'completionexpected' => 0,
+            'tags' =>
+                array (
+                ),
+        //            'course' => 39,
+            'coursemodule' => $cmid,
+        //            'section' => 1,
+        //            'module' => 11,
+            'modulename' => $modulename,
+        //            'instance' => 66,
+            'add' => '0',
+            'update' => $cmid,
+            'return' => 1,
+            'sr' => 0,
+            'competencies' =>
+                array (
+                ),
+            'competency_rule' => '0',
+            'submitbutton' => 'Save and display',
+            'displayoptions' => 15,
+        );
 
+if($packagefiles) {
+    $data->packagefile = $packagefiles;
+}
+return $data;
+}
+    static function process_ompdf_data($name,$intro,$section,$packagefiles) {
+        $data = (object) array(
+            'name' => $name,
+            'introeditor' =>
+                array (
+                    'text' => $intro,
+                    'format' => '1',
+                    'itemid' => 481189995,
+                ),
+            'showdescription' => '0',
+            'display' => '0',
+            'showexpanded' => '1',
+            'openinnewtab' => '1',
+            'pdfs' => $packagefiles,
+            'visible' => 1,
+            'visibleoncoursepage' => 1,
+            'cmidnumber' => '',
+            'availabilityconditionsjson' => '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}',
+            'completionunlocked' => 1,
+            'completion' => '1',
+            'completionexpected' => 0,
+            'tags' =>
+                array (
+                ),
+            'course' => 39,
+            'coursemodule' => 0,
+            'section' => $section,
+            'module' => 25,
+            'modulename' => 'ompdf',
+            'instance' => 0,
+            'add' => 'ompdf',
+            'update' => 0,
+            'return' => 0,
+            'sr' => 0,
+            'competencies' =>
+                array (
+                ),
+            'competency_rule' => '0',
+            'submitbutton' => 'Save and display',
+        );
+        return $data;
+    }
+    static function process_ompdf_update($cmid,$modulename,$name,$intro,$section,$packagefiles=null) {
+        $data = (object) array(
+            'name' => $name,
+            'introeditor' =>
+                array (
+                    'text' => $intro,
+                    'format' => '1',
+                    'itemid' => 169478699,
+                ),
+            'showdescription' => '0',
+            'display' => '0',
+            'showexpanded' => '1',
+            'openinnewtab' => '1',
+            'visible' => 1,
+            'visibleoncoursepage' => 1,
+            'cmidnumber' => '',
+            'availabilityconditionsjson' => '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}',
+            'completionunlocked' => 1,
+            'completion' => '1',
+            'completionexpected' => 0,
+            'tags' =>
+                array (
+                ),
+//            'course' => 30,
+            'coursemodule' => $cmid,
+//            'section' => 1,
+//            'module' => 25,
+            'modulename' => $modulename,
+//            'instance' => 3,
+            'add' => '0',
+            'update' => $cmid,
+            'return' => 1,
+            'sr' => 0,
+            'competencies' =>
+                array (
+                ),
+            'competency_rule' => '0',
+            'submitbutton' => 'Save and display',
+        );
+
+        if($packagefiles) {
+            $data->pdfs = $packagefiles;
+        }
+        return $data;
+    }
     /**
-     * BUAT DRAFT FILE
-     *
-     */
-    static function process_draft_files($files,$allowed) {
+             * BUAT DRAFT FILE
+             *
+             */
+    static function process_draft_files($files,$allowed,$multiple) {
 
-        # Hanya menerima file ZIP
-        $ext = pathinfo($files['file']['name'], PATHINFO_EXTENSION);
-        if (!in_array($ext, $allowed)) {
-            print_error("Ekstensi file tidak seuai !");
-        }
+        if(!$multiple && count($files) >1) print_error("Tidak dapat mengupload multiple files");
 
-        global $DB, $USER,$CFG;
-
-        // Saving file.
-        $dir = make_temp_directory('wsupload').'/';
-        $elname = 'file';
-        $filename = $_FILES[$elname]['name'];
-
-        if (file_exists($dir.$filename)) $savedfilepath = $dir.uniqid('m').$filename;
-        else $savedfilepath = $dir.$filename;
-        file_put_contents($savedfilepath, file_get_contents($_FILES[$elname]['tmp_name']));
-        @chmod($savedfilepath, $CFG->filepermissions);
-
-        $filepath = '/';
-        $context = context_user::instance($USER->id);
-        $component = 'user';
-        $filearea = 'draft';
         $itemid = file_get_unused_draft_itemid();
-        $browser = get_file_browser();
+        foreach($files as $file) {
+            # Hanya menerima file allowed
+            $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+            if (!in_array($ext, $allowed)) {
+                print_error("Ekstensi file tidak seuai !");
+            }
 
-        // Move file to filepool.
-        if ($dir = $browser->get_file_info($context, $component, $filearea, $itemid, $filepath, '.')) {
-            $info = $dir->create_file_from_pathname($filename, $savedfilepath);
-            $params = $info->get_params();
-            unlink($savedfilepath);
-            return array(
-                'contextid'=>$params['contextid'],
-                'component'=>$params['component'],
-                'filearea'=>$params['filearea'],
-                'itemid'=>$params['itemid'],
-                'filepath'=>$params['filepath'],
-                'filename'=>$params['filename'],
-                'url'=>$info->get_url()
-            );
-        } else {
-            throw new moodle_exception('nofile');
+            global $DB, $USER, $CFG;
+
+            // Saving file.
+            $dir = make_temp_directory('wsupload') . '/';
+//            $elname = 'file'.$x;
+            $filename = $file['name'];
+
+            if (file_exists($dir . $filename)) $savedfilepath = $dir . uniqid('m') . $filename;
+            else $savedfilepath = $dir . $filename;
+            file_put_contents($savedfilepath, file_get_contents($file['tmp_name']));
+            @chmod($savedfilepath, $CFG->filepermissions);
+
+            $filepath = '/';
+            $context = context_user::instance($USER->id);
+            $component = 'user';
+            $filearea = 'draft';
+            $browser = get_file_browser();
+
+            // Move file to filepool.
+            if ($dir = $browser->get_file_info($context, $component, $filearea, $itemid, $filepath, '.')) {
+                $info = $dir->create_file_from_pathname($filename, $savedfilepath);
+                $params = $info->get_params();
+                unlink($savedfilepath);
+                $filenya[] = array(
+                    'contextid' => $params['contextid'],
+                    'component' => $params['component'],
+                    'filearea' => $params['filearea'],
+                    'itemid' => $params['itemid'],
+                    'filepath' => $params['filepath'],
+                    'filename' => $params['filename'],
+                    'url' => $info->get_url()
+                );
+            } else {
+                throw new moodle_exception('nofile');
+            }
         }
+
+        return ['itemid'=>$itemid, 'files' => $filenya];
     }
 
     /**
