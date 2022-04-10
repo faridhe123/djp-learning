@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Quiz external functions and service definitions.
+ * Custom ENROL Webservice
  *
- * @package    local_user
+ * @package    local_enrol
  * @category   external
  * @copyright  2022 Muhammad Dhea Farizka <farizkadhea@gmail.com>
  */
@@ -26,10 +26,17 @@ defined('MOODLE_INTERNAL') || die;
 
 $functions = array(
 
-    'local_user_get_users_by_field' => array(
-        'classname'     => 'local_user_external',
-        'methodname'    => 'get_users_by_field',
-        'description'   => 'membuat Activity module Sesuai modulename',
+    'local_enrol_manual_enrol_users' => array(
+        'classname'     => 'local_enrol_external',
+        'methodname'    => 'manual_enrol_users',
+        'description'   => 'Enrol user berdasarkan field spesifik',
+        'type'          => 'write',
+        'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
+    ),
+    'local_enrol_manual_unenrol_users' => array(
+        'classname'     => 'local_enrol_external',
+        'methodname'    => 'manual_unenrol_users',
+        'description'   => 'Unenrol user berdasarkan field spesifik',
         'type'          => 'write',
         'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
     ),

@@ -79,10 +79,11 @@ class local_module_external extends external_api {
                 'name' => new external_value(PARAM_TEXT, 'Nama Module Activity', VALUE_DEFAULT, null),
                 'intro' => new external_value(PARAM_RAW, 'Deskripsi dari module yang akan dibuat', VALUE_DEFAULT, null),
                 'content' => new external_value(PARAM_RAW, 'Content', VALUE_DEFAULT, null),
+                'restricted' => new external_value(PARAM_BOOL, 'Content', VALUE_DEFAULT, null),
             )
         );
     }
-    public static function update_module($cmid,$courseid,$section=null,$name,$intro,$content=null) {
+    public static function update_module($cmid,$courseid,$section=null,$name,$intro,$content,$restricted) {
         global $DB, $USER,$CFG;
 
         $params = self::validate_parameters(self::update_module_parameters(),
@@ -93,6 +94,7 @@ class local_module_external extends external_api {
                 'name' => $name,
                 'intro' => $intro,
                 'content' => $content,
+                'restricted' => $restricted,
             ));
 
         $update = $params['cmid'];
@@ -126,24 +128,24 @@ class local_module_external extends external_api {
         # Switch untuk data form
         switch (strtolower($fullmodulename)) {
             case 'page':
-                $fromform = self::process_page_update($params['cmid'],$module->name,$params['name'],$params['intro'],$params['section'],$params['content']);
+                $fromform = self::process_page_update($params['cmid'],$module->name,$params['name'],$params['intro'],$params['section'],$params['content'],$params['restricted']);
                 break;
             case 'quiz':
-                $fromform = self::process_quiz_update($params['cmid'],$module->name,$params['name'],$params['intro'],$params['section']);
+                $fromform = self::process_quiz_update($params['cmid'],$module->name,$params['name'],$params['intro'],$params['section'],$params['restricted']);
                 break;
             case 'scorm package':
                 $allowed = array('zip');
                 $multiple = 0;
                 if($_FILES)$packagefiles = self::process_draft_files($_FILES,$allowed,$multiple);
                 else $packagefiles =null;
-                $fromform = self::process_scorm_update($params['cmid'],$module->name,$params['name'],$params['intro'],$params['section'],$packagefiles);
+                $fromform = self::process_scorm_update($params['cmid'],$module->name,$params['name'],$params['intro'],$params['section'],$packagefiles,$params['restricted']);
                 break;
             case 'h5p':
                 $allowed = array('h5p');
                 $multiple = 0;
                 if($_FILES)$packagefiles = self::process_draft_files($_FILES,$allowed,$multiple);
                 else $packagefiles =null;
-                $fromform = self::process_h5p_update($params['cmid'],$module->name,$params['name'],$params['intro'],$params['section'],$packagefiles);
+                $fromform = self::process_h5p_update($params['cmid'],$module->name,$params['name'],$params['intro'],$params['section'],$packagefiles,$params['restricted']);
                 break;
             case 'ompdf':
                 $allowed = array('pdf');
@@ -181,10 +183,11 @@ class local_module_external extends external_api {
                 'name' => new external_value(PARAM_TEXT, 'Nama Module Activity', VALUE_DEFAULT, null),
                 'intro' => new external_value(PARAM_RAW, 'Deskripsi dari module yang akan dibuat', VALUE_DEFAULT, null),
                 'content' => new external_value(PARAM_RAW, 'Content', VALUE_DEFAULT, null),
+                'restricted' => new external_value(PARAM_BOOL, 'Content', VALUE_DEFAULT, null),
             )
         );
     }
-    public static function create_module($modulename,$courseid,$section,$name,$intro,$content=null) {
+    public static function create_module($modulename,$courseid,$section,$name,$intro,$content,$restricted) {
         global $DB, $USER,$CFG;
 
         $params = self::validate_parameters(self::create_module_parameters(),
@@ -195,6 +198,7 @@ class local_module_external extends external_api {
                 'name' => $name,
                 'intro' => $intro,
                 'content' => $content,
+                'restricted' => $restricted,
             ));
 
         # get course
@@ -215,28 +219,28 @@ class local_module_external extends external_api {
         # Switch untuk data form
         switch ($modulename) {
             case 'page':
-                $data = self::process_page_data($params['name'],$params['intro'],$params['section'],$params['content']);
+                $data = self::process_page_data($params['name'],$params['intro'],$params['section'],$params['content'],$params['restricted']);
                 break;
             case 'quiz':
-                $data = self::process_quiz_data($params['name'],$params['intro'],$params['section']);
+                $data = self::process_quiz_data($params['name'],$params['intro'],$params['section'],$params['restricted']);
                 break;
             case 'scorm':
                 $allowed = array('zip');
                 $multiple = 0;
                 $packagefiles = self::process_draft_files($_FILES,$allowed,$multiple);
-                $data = self::process_scorm_data($params['name'],$params['intro'],$params['section'],$packagefiles);
+                $data = self::process_scorm_data($params['name'],$params['intro'],$params['section'],$packagefiles,$params['restricted']);
                 break;
             case 'h5pactivity':
                 $allowed = array('h5p');
                 $multiple = 0;
                 $packagefiles = self::process_draft_files($_FILES,$allowed,$multiple);
-                $data = self::process_h5p_data($params['name'],$params['intro'],$params['section'],$packagefiles);
+                $data = self::process_h5p_data($params['name'],$params['intro'],$params['section'],$packagefiles,$params['restricted']);
                 break;
             case 'ompdf':
                 $allowed = array('pdf');
                 $multiple = 1;
                 $packagefiles = self::process_draft_files($_FILES,$allowed,$multiple);
-                $data = self::process_ompdf_data($params['name'],$params['intro'],$params['section'],$packagefiles);
+                $data = self::process_ompdf_data($params['name'],$params['intro'],$params['section'],$packagefiles,$params['restricted']);
                 break;
             default:
                 print_error('Fungsi belum ada');
@@ -259,7 +263,7 @@ class local_module_external extends external_api {
 * PROSES DATA FORM untuk setiap jenis module
 *
 */
-    static function process_page_data($name,$intro,$section,$content) {
+    static function process_page_data($name,$intro,$section,$content,$restricted=null) {
         $data = (object) [
             # biasa diedit
             'name' => $name,
@@ -281,9 +285,9 @@ class local_module_external extends external_api {
             'visible' => 1,
             'visibleoncoursepage' => 1,
             'cmidnumber' => "",
-            'availabilityconditionsjson' => '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}',
             'completionunlocked' => 1,
-            'completion' => "1",
+            'completion' => '2',
+            'completionview' => '1',
             'completionexpected' => 0,
             'tags' => [],
             'course' => 39,
@@ -301,9 +305,12 @@ class local_module_external extends external_api {
             'revision' => 1,
         ];
 
+        if($restricted) $data->availabilityconditionsjson = '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}';
+        else $data->availabilityconditionsjson = '{"op":"&","c":[],"showc":[]}';
+
         return $data;
     }
-    static function process_page_update($cmid,$modulename,$name,$intro,$section,$content) {
+    static function process_page_update($cmid,$modulename,$name,$intro,$section,$content,$restricted=null) {
         $data = (object) array(
             'name' => $name,
             'introeditor' =>
@@ -326,7 +333,6 @@ class local_module_external extends external_api {
             'visible' => 1,
             'visibleoncoursepage' => 1,
             'cmidnumber' => '',
-            'availabilityconditionsjson' => '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}',
             'completionunlocked' => 1,
             'completion' => '1',
             'completionexpected' => 0,
@@ -350,10 +356,12 @@ class local_module_external extends external_api {
             'submitbutton2' => 'Save and return to course',
             'revision' => 3,
         );
+        if($restricted) $data->availabilityconditionsjson = '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}';
+        else $data->availabilityconditionsjson = '{"op":"&","c":[],"showc":[]}';
 
         return $data;
     }
-    static function process_quiz_data($name,$intro,$section) {
+    static function process_quiz_data($name,$intro,$section,$restricted=null) {
         $data = (object) [
             # Biasa diedit
             "name" => $name,
@@ -446,10 +454,11 @@ class local_module_external extends external_api {
             "cmidnumber" => "",
             "groupmode" => "0",
             "groupingid" => "0",
-            'availabilityconditionsjson' => '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}',
-            "completionunlocked" => 1,
-            "completion" => "1",
-            "completionpass" => 0,
+            'completionunlocked' => 1,
+            'completion' => '2',
+            'completionview' => '1',
+            'completionusegrade' => '1',
+            'completionpass' => '0',
             "completionattemptsexhausted" => 0,
             "completionminattempts" => 0,
             "completionexpected" => 0,
@@ -468,9 +477,12 @@ class local_module_external extends external_api {
             "submitbutton2" => "Save and return to course",
         ];
 
+        if($restricted) $data->availabilityconditionsjson = '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}';
+        else $data->availabilityconditionsjson = '{"op":"&","c":[],"showc":[]}';
+
         return $data;
     }
-    static function process_quiz_update($cmid,$modulename,$name,$intro,$section) {
+    static function process_quiz_update($cmid,$modulename,$name,$intro,$section,$restricted=null) {
         $data = (object) array(
             'name' => $name,
             'introeditor' =>
@@ -557,10 +569,11 @@ class local_module_external extends external_api {
             'cmidnumber' => '',
             'groupmode' => '0',
             'groupingid' => '0',
-            'availabilityconditionsjson' => '{"op":"&","c":[],"showc":[]}',
             'completionunlocked' => 1,
-            'completion' => '1',
-            'completionpass' => 0,
+            'completion' => '2',
+            'completionview' => '1',
+            'completionusegrade' => '1',
+            'completionpass' => '0',
             'completionattemptsexhausted' => 0,
             'completionminattempts' => 0,
             'completionexpected' => 0,
@@ -583,10 +596,12 @@ class local_module_external extends external_api {
             'competency_rule' => '0',
             'submitbutton' => 'Save and display',
         );
+        if($restricted) $data->availabilityconditionsjson = '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}';
+        else $data->availabilityconditionsjson = '{"op":"&","c":[],"showc":[]}';
 
         return $data;
     }
-    static function process_scorm_data($name,$intro,$section,$packagefiles) {
+    static function process_scorm_data($name,$intro,$section,$packagefiles,$restricted=null) {
         $data = (object) [
             # UNTUK PARAMETER
             "name" => $name,
@@ -636,11 +651,15 @@ class local_module_external extends external_api {
             "groupmode" => "0",
             "groupingid" => "0",
 //            "availabilityconditionsjson" => '{"op":"&","c":[],"showc":[]}',
-            'availabilityconditionsjson' => '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}',
-            "completionunlocked" =>  1,
-            "completion" => "1",
-            "completionscorerequired" => null,
-            "completionexpected" => 0,
+            'completionunlocked' => 1,
+            'completion' => '2',
+            'completionview' => '1',
+            'completionusegrade' => '1',
+            'completionscorerequired' => NULL,
+            'completionscoredisabled' => '1',
+            'completionstatusrequired' => 6,
+            'completionstatusallscos' => 1,
+            'completionexpected' => 0,
             "tags" => [],
             "course" => 33,
             "coursemodule" => 0,
@@ -654,12 +673,15 @@ class local_module_external extends external_api {
             "competencies" => [],
             "competency_rule" => "0",
             "submitbutton2" => "Save and return to course",
-            "completionstatusrequired" => null,
+//            "completionstatusrequired" => null,
         ];
+
+        if($restricted) $data->availabilityconditionsjson = '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}';
+        else $data->availabilityconditionsjson = '{"op":"&","c":[],"showc":[]}';
 
         return $data;
     }
-    static function process_scorm_update($cmid,$modulename,$name,$intro,$section,$packagefiles=null) {
+    static function process_scorm_update($cmid,$modulename,$name,$intro,$section,$packagefiles=null,$restricted=null) {
         $data = (object) array(
             'name' => $name,
             'introeditor' =>
@@ -707,10 +729,14 @@ class local_module_external extends external_api {
             'cmidnumber' => '',
             'groupmode' => '0',
             'groupingid' => '0',
-            'availabilityconditionsjson' => '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}',
             'completionunlocked' => 1,
-            'completion' => '1',
+            'completion' => '2',
+            'completionview' => '1',
+            'completionusegrade' => '1',
             'completionscorerequired' => NULL,
+            'completionscoredisabled' => '1',
+            'completionstatusrequired' => 6,
+            'completionstatusallscos' => 1,
             'completionexpected' => 0,
             'tags' =>
                 array (
@@ -730,15 +756,19 @@ class local_module_external extends external_api {
                 ),
             'competency_rule' => '0',
             'submitbutton' => 'Save and display',
-            'completionstatusrequired' => NULL,
+//            'completionstatusrequired' => NULL,
         );
 
         if($packagefiles) {
             $data->packagefile = $packagefiles;
         }
+
+        if($restricted) $data->availabilityconditionsjson = '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}';
+        else $data->availabilityconditionsjson = '{"op":"&","c":[],"showc":[]}';
+
         return $data;
     }
-    static function process_h5p_data($name,$intro,$section,$packagefiles) {
+    static function process_h5p_data($name,$intro,$section,$packagefiles,$restricted=null) {
         $data = (object) [
              "name" => $name,
              "introeditor" => [
@@ -760,7 +790,6 @@ class local_module_external extends external_api {
              "cmidnumber" => "",
              "groupmode" => "0",
              "groupingid" => "0",
-             "availabilityconditionsjson" => '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}',
              "completionunlocked" => 1,
              "completion" => "2",
              "completionusegrade" => "1",
@@ -780,6 +809,9 @@ class local_module_external extends external_api {
              "submitbutton2" => "Save and return to course",
              "displayoptions" => 15,
         ];
+
+        if($restricted) $data->availabilityconditionsjson = '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}';
+        else $data->availabilityconditionsjson = '{"op":"&","c":[],"showc":[]}';
 
         /* VERSI SIMPLE DATA
 
@@ -828,7 +860,7 @@ class local_module_external extends external_api {
 
         return $data;
     }
-    static function process_h5p_update($cmid,$modulename,$name,$intro,$section,$packagefiles=null) {
+    static function process_h5p_update($cmid,$modulename,$name,$intro,$section,$packagefiles=null,$restricted=null) {
         $data = (object) array(
             'name' => $name,
             'introeditor' =>
@@ -850,7 +882,6 @@ class local_module_external extends external_api {
             'cmidnumber' => '',
             'groupmode' => '0',
             'groupingid' => '0',
-            'availabilityconditionsjson' => '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}',
             'completionunlocked' => 1,
             'completion' => '2',
             'completionusegrade' => '1',
@@ -876,12 +907,15 @@ class local_module_external extends external_api {
             'displayoptions' => 15,
         );
 
+        if($restricted) $data->availabilityconditionsjson = '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}';
+        else $data->availabilityconditionsjson = '{"op":"&","c":[],"showc":[]}';
+
 if($packagefiles) {
     $data->packagefile = $packagefiles;
 }
 return $data;
 }
-    static function process_ompdf_data($name,$intro,$section,$packagefiles) {
+    static function process_ompdf_data($name,$intro,$section,$packagefiles,$restricted=null) {
         $data = (object) array(
             'name' => $name,
             'introeditor' =>
@@ -921,9 +955,13 @@ return $data;
             'competency_rule' => '0',
             'submitbutton' => 'Save and display',
         );
+
+        if($restricted) $data->availabilityconditionsjson = '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}';
+        else $data->availabilityconditionsjson = '{"op":"&","c":[],"showc":[]}';
+
         return $data;
     }
-    static function process_ompdf_update($cmid,$modulename,$name,$intro,$section,$packagefiles=null) {
+    static function process_ompdf_update($cmid,$modulename,$name,$intro,$section,$packagefiles=null,$restricted=null) {
         $data = (object) array(
             'name' => $name,
             'introeditor' =>
@@ -939,7 +977,6 @@ return $data;
             'visible' => 1,
             'visibleoncoursepage' => 1,
             'cmidnumber' => '',
-            'availabilityconditionsjson' => '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}',
             'completionunlocked' => 1,
             'completion' => '1',
             'completionexpected' => 0,
@@ -962,6 +999,9 @@ return $data;
             'competency_rule' => '0',
             'submitbutton' => 'Save and display',
         );
+
+        if($restricted) $data->availabilityconditionsjson = '{"op":"&","c":[{"type":"completion","cm":-1,"e":1}],"showc":[true]}';
+        else $data->availabilityconditionsjson = '{"op":"&","c":[],"showc":[]}';
 
         if($packagefiles) {
             $data->pdfs = $packagefiles;
@@ -1300,6 +1340,11 @@ return $data;
             question_build_edit_resources($edittab, $baseurl, $parame);
 
        quiz_add_quiz_question($params['questionid'], $quiz, $addonpage = 0);
+
+       # Sebelumnya lupa add dibawah ini
+
+        quiz_delete_previews($quiz);
+        quiz_update_sumgrades($quiz);
 
        return ['value'=>'SUKSES ASSIGN QUESTION'];
     }

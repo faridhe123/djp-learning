@@ -69,8 +69,7 @@ class local_user_external extends external_api {
         return ['value' => var_dump("TEST")];
     }
 
-
-    public static function test_returns() {
+    public static function get_users_by_field_returns() {
         return new external_single_structure(
             array(
                 'value' => new external_value(PARAM_TEXT, ''),

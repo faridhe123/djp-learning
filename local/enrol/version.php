@@ -18,13 +18,13 @@
 
 /**
  *
- * @package    local_user
+ * @package    local_enrol
  * @author     Muhammad Dhea Farizka
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'local_user';
-$plugin->version   = 2022040802;
+$plugin->component = 'local_enrol';
+$plugin->version   = 2022040804;
 $plugin->requires  = 2015111600;

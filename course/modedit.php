@@ -163,7 +163,7 @@ if ($mform->is_cancelled()) {
     }
 } else if ($fromform = $mform->get_data()) {
     if (!empty($fromform->update)) {
-        echo "<pre>" , var_export($fromform);die();
+//        echo "<pre>" , var_export($fromform);die();
         list($cm, $fromform) = update_moduleinfo($cm, $fromform, $course, $mform);
     } else if (!empty($fromform->add)) {
 //        echo "<pre>" , var_export($fromform);die();
