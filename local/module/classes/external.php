@@ -249,12 +249,24 @@ class local_module_external extends external_api {
         # Mulai membuat module berdasarkan data form
         $fromform = add_moduleinfo($data, $course,$mform);
 
-        return ['value'=> var_dump($fromform)];
+        return [
+            'cmid' => $fromform->coursemodule,
+            'courseid' => $fromform->course,
+            'section' => $fromform->section,
+            'modulename' => $fromform->modulename,
+            'moduleid' => $fromform->id,
+//            'value'=> var_dump($fromform)
+            ];
     }
     public static function create_module_returns() {
         return new external_single_structure(
             array(
-                'value' => new external_value(PARAM_TEXT, ''),
+                'cmid' =>new external_value(PARAM_INT, ''),
+                'courseid' =>new external_value(PARAM_INT, ''),
+                'section' =>new external_value(PARAM_INT, ''),
+                'modulename' =>new external_value(PARAM_TEXT, ''),
+                'moduleid' =>new external_value(PARAM_INT, ''),
+//                'value' => new external_value(PARAM_TEXT, 'VAR_DUMP'),
             )
         );
     }
@@ -1277,7 +1289,17 @@ return $data;
             $qtypeobj->save_defaults_for_new_questions($data);
         }
         $question = $qtypeobj->save_question($question, $data);
-        return ['value'=> var_dump($question)];
+        return [
+            'questionid'=> $question->id,
+            'bankid'=> $question->category,
+            'bankname'=> $params['bankcategory'],
+            'cmid'=> $params['cmid'],
+            'courseid'=> $params['courseid'],
+            'coursecat'=> $params['coursecat'],
+            'contextid'=> $question->contextid,
+            'createdby'=> $question->createdby,
+//            'value'=> var_dump($question)
+        ];
 
         # Assign ke Module
         self::assign_question_to_quiz($question->id,$toform->cmid);
@@ -1286,7 +1308,15 @@ return $data;
     public static function create_question_returns() {
         return new external_single_structure(
             array(
-                'value' => new external_value(PARAM_TEXT, ''),
+                'questionid' => new external_value(PARAM_TEXT, ''),
+                'bankid' => new external_value(PARAM_INT, ''),
+                'bankname' => new external_value(PARAM_TEXT, ''),
+                'cmid' => new external_value(PARAM_INT, ''),
+                'courseid' => new external_value(PARAM_INT, ''),
+                'coursecat' => new external_value(PARAM_INT, ''),
+                'contextid' => new external_value(PARAM_INT, ''),
+                'createdby' => new external_value(PARAM_INT, ''),
+//                'value' => new external_value(PARAM_TEXT, ''),
             )
         );
     }

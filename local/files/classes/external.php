@@ -47,10 +47,10 @@ class local_files_external extends external_api {
                 'contextid' => new external_value(PARAM_INT, 'context id', VALUE_DEFAULT, null),
                 'component' => new external_value(PARAM_COMPONENT, 'component'),
                 'filearea'  => new external_value(PARAM_AREA, 'file area'),
-                'itemid'    => new external_value(PARAM_INT, 'associated id'),
-                'filepath'  => new external_value(PARAM_PATH, 'file path'),
+                'itemid'    => new external_value(PARAM_INT, 'associated id', VALUE_DEFAULT,0),
+                'filepath'  => new external_value(PARAM_PATH, 'file path', VALUE_DEFAULT,'/'),
                 'filename'  => new external_value(PARAM_FILE, 'file name', VALUE_DEFAULT,null),
-                'filecontent' => new external_value(PARAM_TEXT, 'file content',VALUE_OPTIONAL),
+                'filecontent' => new external_value(PARAM_TEXT, 'file content',VALUE_DEFAULT,null),
                 'contextlevel' => new external_value(PARAM_ALPHA, 'The context level to put the file in,
                         (block, course, coursecat, system, user, module)', VALUE_DEFAULT, null),
                 'instanceid' => new external_value(PARAM_INT, 'The Instance id of item associated
