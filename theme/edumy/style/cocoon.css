@@ -8422,27 +8422,27 @@ body:not(.ccn_context_dashboard) .ui_kit_select_search button.btn:focus {
   font-size: 18px;
   padding-right: 5px;
 }
-/*.cart_btnss {*/
-/*  border-radius: 27px;*/
-/*  background-color: rgb(255, 16, 83);*/
-/*  display: block;*/
-/*  font-size: 15px;*/
-/*  font-family: "[[setting:secondary_font]]";*/
-/*  color: rgb(255, 255, 255);*/
-/*  height: 50px;*/
-/*  line-height: 3.2;*/
-/*  margin-bottom: 23px;*/
-/*  margin-top: 23px;*/
-/*  margin-left: auto;*/
-/*  margin-right: auto;*/
-/*  text-align: center;*/
-/*  max-width: 234px;*/
-/*  border: 2px solid [[setting:color_secondary]];*/
-/*  -webkit-transition: all 0.3s ease;*/
-/*  -moz-transition: all 0.3s ease;*/
-/*  -o-transition: all 0.3s ease;*/
-/*  transition: all 0.3s ease;*/
-/*}*/
+.cart_btnss {
+  border-radius: 27px;
+  background-color: rgb(255, 16, 83);
+  display: block;
+  font-size: 15px;
+  font-family: "[[setting:secondary_font]]";
+  color: rgb(255, 255, 255);
+  height: 50px;
+  line-height: 3.2;
+  margin-bottom: 23px;
+  margin-top: 23px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  max-width: 234px;
+  border: 2px solid [[setting:color_secondary]];
+  -webkit-transition: all 0.3s ease;
+  -moz-transition: all 0.3s ease;
+  -o-transition: all 0.3s ease;
+  transition: all 0.3s ease;
+}
 .cart_btnss:hover {
   background-color: #ffffff;
   border: 2px solid [[setting:color_secondary]];
