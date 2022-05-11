@@ -10,7 +10,7 @@
           <div class="so_content" data-simplebar="init">
             <nav class="list-group">
               {{#langs}}
-                <a href="{{htmlspecialchars_decode(url)}}">
+                <a href="{{urlfix}}">
                   <div class="lang_icon_flag"><img src="{{icon}}" /></div>{{name}}
                 </a>
               {{/langs}}

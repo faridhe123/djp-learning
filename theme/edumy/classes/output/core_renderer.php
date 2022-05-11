@@ -181,6 +181,7 @@ class core_renderer extends \core_renderer {
           'url' => new moodle_url($this->page->url, array('lang' => $langtype)),
           'code' => $langtype,
           'icon' => $CFG->wwwroot.'/theme/edumy/pix/lang/'.strtoupper(str_replace("_", "-", $langtype)).'.svg',
+          'urlfix' => htmlspecialchars_decode(new moodle_url($this->page->url, array('lang' => $langtype))),
         ];
       }
 
