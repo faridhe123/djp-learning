@@ -26,6 +26,9 @@
 
 require_once($CFG->libdir . '/externallib.php');
 
+// add local class
+require_once($CFG->dirroot . '/local/files/classes/external.php');
+
 
 defined('MOODLE_INTERNAL') || die;
 
@@ -47,13 +50,16 @@ class local_one_api_external extends external_api {
     {
         global $DB, $USER, $CFG;
 
+//        TEST PAKE FUNGSI STATIS
+        $return = local_files_external::upload(null,'course','overviewfiles',null,null,null,null,'course','5');
+
         $params = self::validate_parameters(self::test_parameters(),
             array(
                 'parameter' => $parameter,
             )
         );
 
-        return ['value'=> var_dump("UJI COBA ")];
+        return ['value'=> var_dump($return)];
     }
 
     public static function test_returns() {
