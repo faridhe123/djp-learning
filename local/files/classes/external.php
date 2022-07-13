@@ -54,7 +54,8 @@ class local_files_external extends external_api {
                 'contextlevel' => new external_value(PARAM_ALPHA, 'The context level to put the file in,
                         (block, course, coursecat, system, user, module)', VALUE_DEFAULT, null),
                 'instanceid' => new external_value(PARAM_INT, 'The Instance id of item associated
-                         with the context level', VALUE_DEFAULT, null)
+                         with the context level', VALUE_DEFAULT, null),
+                'fileurl'  => new external_value(PARAM_URL, 'URL', VALUE_DEFAULT,null),
             )
         );
     }
@@ -197,13 +198,13 @@ class local_files_external extends external_api {
      * @return array
      * @since Moodle 2.2
      */
-    public static function upload($contextid=null, $component, $filearea, $itemid, $filepath, $filename=null, $filecontent=null, $contextlevel, $instanceid) {
+    public static function upload($contextid=null, $component, $filearea, $itemid, $filepath, $filename=null, $filecontent=null, $contextlevel, $instanceid,$fileurl) {
         global $USER, $CFG;
 
         $fileinfo = self::validate_parameters(self::upload_parameters(), array(
             'contextid' => $contextid, 'component' => $component, 'filearea' => $filearea, 'itemid' => $itemid,
             'filepath' => $filepath, 'filename' => $filename, 'filecontent' => $filecontent, 'contextlevel' => $contextlevel,
-            'instanceid' => $instanceid));
+            'instanceid' => $instanceid,'fileurl' => $fileurl));
 
         # ganti sistem filecontent tidak perlu menggunanaka base64
 //        if (!isset($fileinfo['filecontent'])) {
@@ -225,13 +226,17 @@ class local_files_external extends external_api {
 //            $filename = $fileinfo['filename'];
 //        }
 
+//        return ['value' => var_dump($fileinfo)];
 
         if (!empty($fileinfo['filename'])) {
             $filename = $fileinfo['filename'];
         }elseif(!empty($_FILES)){
             $filename = $_FILES[$elname]['name'];
-        } else {
-            $filename = uniqid('wsupload', true).'_'.time().'.tmp';
+        }elseif($fileinfo['fileurl']){
+            $filename = uniqid('wsupload', true).'_'.time().'.'.pathinfo($fileinfo['fileurl'], PATHINFO_EXTENSION);}
+        else {
+//            entah kenapa jadi TMP?
+//            $filename = uniqid('wsupload', true).'_'.time().'.tmp';
         }
 
         if (file_exists($dir.$filename)) {
@@ -245,7 +250,12 @@ class local_files_external extends external_api {
 
         # coba pakai $_FILES
         # bisa pakai copy(source,destination)
-        file_put_contents($savedfilepath, file_get_contents($_FILES[$elname]['tmp_name']));
+
+        if($fileinfo['fileurl'])
+            file_put_contents($savedfilepath, file_get_contents($fileinfo['fileurl']));
+        else
+            file_put_contents($savedfilepath, file_get_contents($_FILES[$elname]['tmp_name']));
+
 
         @chmod($savedfilepath, $CFG->filepermissions);
         unset($fileinfo['filecontent']);
