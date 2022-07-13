@@ -55,8 +55,6 @@ class local_module_external extends external_api {
     /**
      * TEST PARAMETER
      *
-     * @return external_function_parameters
-     * @since Moodle 2.2
      */
 //    public static function update_module_parameters() {
 //        return new external_function_parameters(
