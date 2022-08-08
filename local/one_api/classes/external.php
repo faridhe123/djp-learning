@@ -28,6 +28,9 @@ require_once($CFG->libdir . '/externallib.php');
 
 // add local class
 require_once($CFG->dirroot . '/local/files/classes/external.php');
+require_once($CFG->dirroot . '/local/module/classes/external.php');
+
+require_once($CFG->dirroot . '/course/externallib.php');
 
 
 defined('MOODLE_INTERNAL') || die;
@@ -51,7 +54,24 @@ class local_one_api_external extends external_api {
         global $DB, $USER, $CFG;
 
 //        TEST PAKE FUNGSI STATIS
-        $return = local_files_external::upload(null,'course','overviewfiles',null,null,null,null,'course','5');
+//        $return = local_files_external::upload(null,'course','overviewfiles',null,null,null,null,'course','5');
+        $course = core_course_external::create_courses(['courses' => [
+            'fullname'=> 'test TOBE DELETED2',
+            'shortname' => 'test TOBE DELETED2',
+            'categoryid' => '1',
+            'summary' => 'this is summary',
+            'numsections' => '1',
+        ] ]);
+
+        $module = local_module_external::create_module(
+            'h5pactivity',
+            $course[0]['id'],
+            1,
+            'MODULE TOBE DELETED2',
+            'INTRO',
+            null,
+            null
+        );
 
         $params = self::validate_parameters(self::test_parameters(),
             array(
@@ -59,7 +79,7 @@ class local_one_api_external extends external_api {
             )
         );
 
-        return ['value'=> var_dump($return)];
+        return ['value'=> var_dump($module)];
     }
 
     public static function test_returns() {
