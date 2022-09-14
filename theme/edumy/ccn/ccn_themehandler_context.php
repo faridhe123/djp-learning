@@ -9,7 +9,7 @@ $templatecontext = [
     'sitename' => format_string($SITE->shortname, true, ['context' => context_course::instance(SITEID), "escape" => false]),
     'output' => $OUTPUT,
     'ccnLogoUrl' => $ccnLogoUrl,
-    'pageheading' => format_text($pageheading, FORMAT_HTML, array('filter' => true)),
+    'pageheading' => format_text($pageheading, FORMAT_HTML, array('filter' => false)),
     'sidepreblocks' => $blockshtml,
     'ccn_login' => $_ccnlogin,
     // 'ccn_registration' => $_ccnregistration,

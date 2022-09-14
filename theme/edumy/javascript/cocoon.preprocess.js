@@ -259,14 +259,14 @@ $(function() {
       $(".inner_page_breadcrumb").replaceWith("<section class='inner_page_breadcrumb csv2'><div class='container'><div class='row'><div class='col-xl-9'><div class='breadcrumb_content'><div class='cs_row_one csv2'><div class='cs_ins_container'></div></div></div></div></div></div></section>");
       $(this).find(".block-controls").appendTo(".breadcrumb_content .cs_ins_container");
       $(this).find(".ccn-identify-course-intro").appendTo(".breadcrumb_content .cs_ins_container");
-      // if ($(window).width() > 1000) {
-      //   $("#block-region-side-pre").css("margin-top", "-300px");
-      // }
-      // $(window).resize(function() {
-      //   if ($(window).width() > 1000) {
-      //     $("#block-region-side-pre").css("margin-top", "-300px");
-      //   }
-      // });
+      if ($(window).width() > 1000) {
+        $("#block-region-side-pre").css("margin-top", "-300px");
+      }
+      $(window).resize(function() {
+        if ($(window).width() > 1000) {
+          $("#block-region-side-pre").css("margin-top", "-300px");
+        }
+      });
     });
     /* End New Course Single handlers */
     if ($(".ccn_course_list_style_2.pagelayout-coursecategory .shadow_box").length) {
