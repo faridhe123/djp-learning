@@ -14,7 +14,7 @@ class block_cocoon_course_overview extends block_base
     public function specialization()
     {
         // $this->title = isset($this->config->title) ? format_string($this->config->title) : '';
-        global $CFG, $DB;
+        global $CFG, $DB, $COURSE;
         include($CFG->dirroot . '/theme/edumy/ccn/block_handler/specialization.php');
         if (empty($this->config)) {
           $this->config = new \stdClass();
@@ -49,6 +49,7 @@ class block_cocoon_course_overview extends block_base
                                             </li>
                                         </ul>
 									';
+            $this->config->description['text'] = $COURSE->summary;
         }
     }
 

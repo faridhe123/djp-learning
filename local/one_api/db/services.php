@@ -33,4 +33,11 @@ $functions = array(
         'type'          => 'write',
         'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
     ),
+    'local_one_api_create' => array(
+        'classname'     => 'local_one_api_external',
+        'methodname'    => 'create',
+        'description'   => 'Uji coba module ONE API',
+        'type'          => 'write',
+        'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
+    ),
 );

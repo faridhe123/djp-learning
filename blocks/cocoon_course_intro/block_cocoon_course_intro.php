@@ -87,10 +87,11 @@ class block_cocoon_course_intro extends block_base {
               <div class="ccn-identify-course-intro">
                 <div class="cs_instructor">
                   <ul class="cs_instrct_list float-left mb0">';
-                  if($this->content->show_teacher == '1'){
-                    $this->content->text .= $renderImage;
-                    $this->content->text .= $renderName;
-                  }
+        // Tidak perlu tampilkan teacher
+//                  if($this->content->show_teacher == '1'){
+//                    $this->content->text .= $renderImage;
+//                    $this->content->text .= $renderName;
+//                  }
                   if($PAGE->theme->settings->coursecat_modified != 1){
                     $this->content->text .='  <li class="list-inline-item"><a class="'.$white.'">'.get_string('last_updated', 'theme_edumy').' '. userdate($COURSE->timemodified, get_string('strftimedate', 'langconfig'), 0) .'</a></li>';
                   }
@@ -100,12 +101,12 @@ class block_cocoon_course_intro extends block_base {
                     <li class="list-inline-item"><a class="'.$white.'" target="_blank" href="'.$cocoon_share_fb.'"><span class="flaticon-share"> '.get_string('share','theme_edumy').'</span></a></li>
                   </ul>
                 </div>
-                <h3 class="cs_title '.$white.'">'. format_text($COURSE->fullname, FORMAT_HTML, array('filter' => true)) .'</h3>
-                <ul class="cs_review_seller">';
+                <h3 class="cs_title '.$white.'">'. format_text($COURSE->fullname, FORMAT_HTML, array('filter' => false)) .'</h3>
+                <!--<ul class="cs_review_seller">';
                     $this->content->text .= $renderAccent;
                     $this->content->text .= $ccnCourse->ccnRender->starRating;
                   $this->content->text .='
-                </ul>';
+                </ul>-->';
                 if($PAGE->theme->settings->coursecat_enrolments != 1 || $PAGE->theme->settings->coursecat_announcements != 1){
                 $this->content->text .='<ul class="cs_review_enroll">';
                 if($PAGE->theme->settings->coursecat_enrolments != 1){

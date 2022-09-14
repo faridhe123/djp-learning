@@ -26,5 +26,5 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_one_api';
-$plugin->version   = 2022070702;
+$plugin->version   = 2022091301;
 $plugin->requires  = 2015111600;
