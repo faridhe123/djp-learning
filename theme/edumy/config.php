@@ -273,10 +273,10 @@ $THEME->addblockposition = BLOCK_ADDBLOCK_POSITION_FLATNAV;
 //   return theme_edumy_get_main_scss_content($theme);
 // };
 $THEME->javascripts = array(
+  'cocoon.preprocess',
   'cocoon.init.preprocess',
   'cocoon.init.lcvb.frontend.preprocess.min',
   'jquery-migrate-3.0.0.min',
-  'cocoon.preprocess',
   'cocoon.dashboard.preprocess',
   'jquery.mmenu.all',
   'ace-responsive-menu',

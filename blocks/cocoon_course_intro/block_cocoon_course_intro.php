@@ -119,11 +119,11 @@ class block_cocoon_course_intro extends block_base {
               }
               $this->content->text .='</div>';
 
-              if(!empty($this->content->video_url)) {
+              if(!empty($this->content->video_url) or true) {
                 $this->content->text .='
-                  <div class="courses_big_thumb">
+                  <div class="courses_big_thumb" hidden>
                     <div class="thumb">
-                      <iframe class="iframe_video" src="'.$ccnVideo.'" frameborder="0" allowfullscreen></iframe>
+                      <iframe class="iframe_video" src="#" frameborder="0" allowfullscreen></iframe>
                     </div>
                   </div>';
               }

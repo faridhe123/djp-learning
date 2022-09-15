@@ -66,7 +66,7 @@ class local_one_api_external extends external_api {
                             'categoryname' => new external_value(PARAM_TEXT, 'Pilih satu, ID atau NAME', VALUE_OPTIONAL),
                             'idnumber' => new external_value(PARAM_RAW, 'id number', VALUE_OPTIONAL),
                             'summary' => new external_value(PARAM_RAW, 'summary', VALUE_OPTIONAL),
-                            'numsections' => new external_value(PARAM_INT, 'summary', VALUE_OPTIONAL),
+                            'numsections' => new external_value(PARAM_INT, 'numsections', VALUE_OPTIONAL),
 //                            // Input modules
                             'modules' => new external_multiple_structure(
                                 new external_single_structure(
@@ -117,6 +117,7 @@ class local_one_api_external extends external_api {
                     'summary' => $course['summary'],
                     'numsections' => $course['numsections'],
                     'idnumber' => $course['idnumber'],
+                    'newsitems' => "0",  // Hilangkan announcement
             ]]);
 
             $status_course['course_'.$createdCourse['id']] = "Course ".$createdCourse['id']." created!";
