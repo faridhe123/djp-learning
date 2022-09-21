@@ -120,7 +120,7 @@ class local_one_api_external extends external_api {
                     'newsitems' => "0",  // Hilangkan announcement
             ]]);
 
-            $status_course['course_'.$createdCourse['id']] = "Course ".$createdCourse['id']." created!";
+//            $status_course['course_'.$createdCourse['id']] = "Course ".$createdCourse['id']." created!";
 
             $y = 1;
             foreach($course['modules'] as $module ) {
@@ -134,19 +134,41 @@ class local_one_api_external extends external_api {
                     null
                 );
 //                $status_course['course_'.$x]['module_'.$y] = "Module $x created!";
+                $modules_created[] = [
+                    'cmid'=> $createdModule['cmid'],
+                    'section'=> $createdModule['section'],
+                    'modulename'=> $createdModule['modulename'],
+                    'moduleid'=> $createdModule['moduleid'],
+                ];
             }
-        }
-        return ['value'=> var_dump($createdModule)];
 
-        return ['value'=> var_dump($module)];
+            $course_created[] = [
+                'id' => $createdCourse[0]['id'],
+                'shortname' => $createdCourse[0]['shortname'],
+                'idnumber' => $course['idnumber'],
+                'modules' => $modules_created,
+            ];
+
+        }
+
+        return $course_created;
     }
 
     public static function create_returns() {
-        return new external_single_structure(
-            array(
-                'value' => new external_value(PARAM_TEXT, ''),
-            )
-        );
+        return new external_multiple_structure(
+            new external_single_structure(
+                array(
+                    'id'       => new external_value(PARAM_INT, 'course id'),
+                    'shortname' => new external_value(PARAM_RAW, 'short name'),
+                    'idnumber' => new external_value(PARAM_RAW, 'idnumber name'),
+                    'modules' => new external_multiple_structure(
+                        new external_single_structure(
+                            array(
+                               'cmid'=>new external_value(PARAM_INT, 'course id'),
+                               'section'=>new external_value(PARAM_INT, 'nama modul'),
+                               'modulename'=>new external_value(PARAM_RAW, 'jenis modul'),
+                               'moduleid'=>new external_value(PARAM_INT, 'jenis modul'),
+                            ))))));
     }
 
     /**
