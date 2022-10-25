@@ -57,81 +57,115 @@ class local_one_api_external extends external_api {
     public static function create_parameters() {
         return new external_function_parameters(
             array(
-                'courses' => new external_multiple_structure(
-                    new external_single_structure(
-                        array(
-                            'fullname' => new external_value(PARAM_TEXT, 'full name'),
-                            'shortname' => new external_value(PARAM_TEXT, 'course short name'),
-                            'categoryid' => new external_value(PARAM_TEXT, 'Pilih satu, ID atau NAME', VALUE_OPTIONAL),
-                            'categoryname' => new external_value(PARAM_TEXT, 'Pilih satu, ID atau NAME', VALUE_OPTIONAL),
-                            'idnumber' => new external_value(PARAM_RAW, 'id number', VALUE_OPTIONAL),
-                            'summary' => new external_value(PARAM_RAW, 'summary', VALUE_OPTIONAL),
-                            'numsections' => new external_value(PARAM_INT, 'numsections', VALUE_OPTIONAL),
-//                            // Input modules
-                            'modules' => new external_multiple_structure(
-                                new external_single_structure(
-                                    array(
-//                                        'courseid' => new external_value(PARAM_TEXT, 'full name'), # Ambil dari balikan create course
-                                        'section' => new external_value(PARAM_INT,'', VALUE_DEFAULT,1),
-                                        'modulename' => new external_value(PARAM_TEXT,''),
-                                        'name' => new external_value(PARAM_TEXT,''),
-                                        'intro' => new external_value(PARAM_RAW,'',VALUE_OPTIONAL),
-                                        'restricted' => new external_value(PARAM_BOOL,'',VALUE_OPTIONAL),
-                                        'content' => new external_value(PARAM_RAW,'',VALUE_OPTIONAL),
-                                    )),
-                                'additional options for particular course format', VALUE_OPTIONAL)
-                        )
-                    ), 'courses to create'
-                ),
+                'fullname' => new external_value(PARAM_TEXT, 'full name'),
+                'shortname' => new external_value(PARAM_TEXT, 'course short name'),
+                'categoryid' => new external_value(PARAM_TEXT, 'Pilih satu, ID atau NAME', VALUE_DEFAULT,null),
+                'categoryname' => new external_value(PARAM_TEXT, 'Pilih satu, ID atau NAME', VALUE_DEFAULT,null),
+                'idnumber' => new external_value(PARAM_RAW, 'id number', VALUE_DEFAULT,null),
+                'summary' => new external_value(PARAM_RAW, 'summary', VALUE_DEFAULT,null),
+                'numsections' => new external_value(PARAM_INT, 'numsections', VALUE_DEFAULT,null),
+                'module_section' => new external_value(PARAM_INT,'', VALUE_DEFAULT,1),
+                'module_modulename' => new external_value(PARAM_TEXT,''),
+                'module_name' => new external_value(PARAM_TEXT,''),
+                'module_intro' => new external_value(PARAM_RAW,'',VALUE_DEFAULT,null),
+                'module_restricted' => new external_value(PARAM_BOOL,'',VALUE_DEFAULT,0),
+                'module_content' => new external_value(PARAM_RAW,'',VALUE_DEFAULT,null),
             )
         );
     }
 
-    public static function create($courses)
+    public static function create(
+        $fullname,
+        $shortname,
+        $categoryid = null,
+        $categoryname = null,
+        $idnumber = null,
+        $summary = null,
+        $numsections = null,
+        $module_section = null,
+        $module_modulename = null,
+        $module_name = null,
+        $module_intro = null,
+        $module_restricted = null,
+        $module_content = null
+    )
     {
         global $DB, $USER, $CFG;
-
+//die(var_dump($_POST));
         $params = self::validate_parameters(self::create_parameters(),
-            array('courses' => $courses,));
+            array(
+                'fullname'=> $fullname,
+                'shortname' => $shortname,
+                'categoryid' => $categoryid,
+                'categoryname' => $categoryname,
+                'idnumber' => $idnumber,
+                'summary' => $summary,
+                'numsections' => $numsections,
+                'module_section' => $module_section,
+                'module_modulename' => $module_modulename,
+                'module_name' => $module_name,
+                'module_intro' => $module_intro,
+                'module_restricted' => $module_restricted,
+                'module_content' => $module_content,
+                )
+        );
+
+//        $params = array(
+//            'fullname'=> $fullname,
+//            'shortname' => $shortname,
+//            'categoryid' => $categoryid,
+//            'categoryname' => $categoryname,
+//            'idnumber' => $idnumber,
+//            'summary' => $summary,
+//            'numsections' => $numsections,
+//            'module_section' => $module_section,
+//            'module_modulename' => $module_modulename,
+//            'module_name' => $module_name,
+//            'module_intro' => $module_intro,
+//            'module_restricted' => $module_restricted,
+//            'module_content' => $module_content,
+//        );
 
 
 //        TEST PAKE FUNGSI STATIS
 //        $return = local_files_external::upload(null,'course','overviewfiles',null,null,null,null,'course','5');
 
         $x = 1;
-        foreach($params['courses'] as $course) {
-            if($course['categoryid']){
-                $categoryid = $course['categoryid'];
+        // jadikan single
+//        foreach($params['courses'] as $course) {
+            if($params['categoryid']){
+                $categoryid = $params['categoryid'];
             } else {
                 $category = core_course_external::get_categories([
-                    'criteria'=> ['key'=> 'name', 'value'=> $course['categoryname'] ]
+                    'criteria'=> ['key'=> 'name', 'value'=> $params['categoryname'] ]
                 ])[0];
                 $categoryid = $category['id'];
             }
 
             $createdCourse = core_course_external::create_courses([
                 'courses' => [
-                    'fullname'=> $course['fullname'],
-                    'shortname' => $course['shortname'],
+                    'fullname'=> $params['fullname'],
+                    'shortname' => $params['shortname'],
                     'categoryid' => $categoryid,
-                    'summary' => $course['summary'],
-                    'numsections' => $course['numsections'],
-                    'idnumber' => $course['idnumber'],
+                    'summary' => $params['summary'],
+                    'numsections' => $params['numsections'],
+                    'idnumber' => $params['idnumber'],
                     'newsitems' => "0",  // Hilangkan announcement
             ]]);
 
 //            $status_course['course_'.$createdCourse['id']] = "Course ".$createdCourse['id']." created!";
 
             $y = 1;
-            foreach($course['modules'] as $module ) {
+            // jadikan single
+//            foreach($course['modules'] as $module ) {
                 $createdModule = local_module_external::create_module(
-                    $module['modulename'],
+                    $params['module_modulename'],
                     $createdCourse[0]['id'],
-                    $module['section'],
-                    $module['name'],
-                    $module['intro'],
-                    $module['content'],
-                    null
+                    $params['module_section'],
+                    $params['module_name'],
+                    $params['module_intro'],
+                    $params['module_content'],
+                    $params['module_restricted']
                 );
 //                $status_course['course_'.$x]['module_'.$y] = "Module $x created!";
                 $modules_created[] = [
@@ -140,35 +174,33 @@ class local_one_api_external extends external_api {
                     'modulename'=> $createdModule['modulename'],
                     'moduleid'=> $createdModule['moduleid'],
                 ];
-            }
+//            }
 
-            $course_created[] = [
+            $one_api_created = [
                 'id' => $createdCourse[0]['id'],
                 'shortname' => $createdCourse[0]['shortname'],
-                'idnumber' => $course['idnumber'],
-                'modules' => $modules_created,
+                'idnumber' => $params['idnumber'],
+                'module_cmid'=> $createdModule['cmid'],
+                'module_section'=> $createdModule['section'],
+                'module_modulename'=> $createdModule['modulename'],
+                'module_moduleid'=> $createdModule['moduleid'],
             ];
 
-        }
+//        }
 
-        return $course_created;
+        return $one_api_created;
     }
 
     public static function create_returns() {
-        return new external_multiple_structure(
-            new external_single_structure(
-                array(
-                    'id'       => new external_value(PARAM_INT, 'course id'),
-                    'shortname' => new external_value(PARAM_RAW, 'short name'),
-                    'idnumber' => new external_value(PARAM_RAW, 'idnumber name'),
-                    'modules' => new external_multiple_structure(
-                        new external_single_structure(
-                            array(
-                               'cmid'=>new external_value(PARAM_INT, 'course id'),
-                               'section'=>new external_value(PARAM_INT, 'nama modul'),
-                               'modulename'=>new external_value(PARAM_RAW, 'jenis modul'),
-                               'moduleid'=>new external_value(PARAM_INT, 'jenis modul'),
-                            ))))));
+        return new external_single_structure(
+            array(
+                'id'       => new external_value(PARAM_INT, 'course id'),
+                'shortname' => new external_value(PARAM_RAW, 'short name'),
+                'idnumber' => new external_value(PARAM_RAW, 'idnumber name'),
+                'module_cmid'=>new external_value(PARAM_INT, 'course id'),
+                'module_section'=>new external_value(PARAM_INT, 'nama modul'),
+                'module_modulename'=>new external_value(PARAM_RAW, 'jenis modul'),
+                'module_moduleid'=>new external_value(PARAM_INT, 'jenis modul'),));
     }
 
     /**
