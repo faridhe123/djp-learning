@@ -162,15 +162,14 @@ class local_grade_external extends external_api {
             array(
 //                'itemmodule' => new external_value(PARAM_TEXT, ''),
 //                'iteminstance' => new external_value(PARAM_TEXT, ''),
-//                '__test' => new external_value(PARAM_TEXT, '',VALUE_OPTIONAL),
-                'modname' => new external_value(PARAM_TEXT, '',VALUE_OPTIONAL),
-                'gradesubmitted' => new external_value(PARAM_TEXT, '',VALUE_OPTIONAL),
-                'grade' => new external_value(PARAM_TEXT, '',VALUE_OPTIONAL),
-                'gradepass' => new external_value(PARAM_TEXT, '',VALUE_OPTIONAL),
-                'grademax' => new external_value(PARAM_TEXT, '',VALUE_OPTIONAL),
-                'completion_state' => new external_value(PARAM_TEXT, '',VALUE_OPTIONAL),
-                'timecompleted' => new external_value(PARAM_TEXT, '',VALUE_OPTIONAL),
-                'keterangan_state' => new external_value(PARAM_TEXT, '',VALUE_OPTIONAL),
+                'modname' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
+                'gradesubmitted' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
+                'grade' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
+                'gradepass' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
+                'grademax' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
+                'completion_state' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
+                'timecompleted' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
+                'keterangan_state' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
             )
         );
     }
