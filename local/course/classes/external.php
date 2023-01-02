@@ -83,6 +83,7 @@ class local_course_external extends external_api {
                 'moduleid' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
                 'modulename' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
                 'courseid' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
+                'idnumber' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
                 'categoryid' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
                 'start' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
                 'length' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
@@ -91,7 +92,7 @@ class local_course_external extends external_api {
         );
     }
 
-    public static function get_course_module($moduleid,$modulename,$courseid,$categoryid,$start,$length,$sort) {
+    public static function get_course_module($moduleid,$modulename,$courseid,$idnumber,$categoryid,$start,$length,$sort) {
         global $DB,$CFG;
 
         $params = self::validate_parameters(self::get_course_module_parameters(),
@@ -99,6 +100,7 @@ class local_course_external extends external_api {
                 'moduleid' => $moduleid,
                 'modulename' => $modulename,
                 'courseid' => $courseid,
+                'idnumber' => $idnumber,
                 'categoryid' => $categoryid,
                 'start' => $start,
                 'length' => $length,
@@ -123,18 +125,27 @@ class local_course_external extends external_api {
             if($courseid && $courseid !== $course->id)
                 continue;
 
+            if($idnumber && $idnumber !== $course->idnumber)
+                continue;
+
             if($categoryid && $categoryid !== $category->id)
                 continue;
 
             $array_cm[] = [
                 'cmid' => $cm->id,
                 'title' => $cm->name,
-                'url' => "https://devprojectan.com/mod/{$cm->modname}/view.php?id={$cm->id}",
+                'url' => "http://10.244.66.78/djp-learning/mod/{$cm->modname}/view.php?id={$cm->id}",
                 'modulename' => $cm->modname,
                 'courseid' => $cm->course,
+                'idnumber' => $course->idnumber,
                 'categoryid' => $category->id,
                 'categoryname' => $category->name
             ];
+        }
+//        var_dump($array_cm);die('oke');
+
+        if(!$array_cm) {
+            $array_cm = [];
         }
 
         $recordsFiltered = count($array_cm);
@@ -172,17 +183,17 @@ class local_course_external extends external_api {
             array(
                 'data' => new external_multiple_structure(
                     new external_single_structure([
-                        'cmid' => new external_value(PARAM_INT, '',VALUE_OPTIONAL),
-                        'title' => new external_value(PARAM_TEXT, '',VALUE_OPTIONAL),
-                        'url' => new external_value(PARAM_URL, '',VALUE_OPTIONAL),
-                        'modulename' => new external_value(PARAM_TEXT, '',VALUE_OPTIONAL),
-                        'courseid' => new external_value(PARAM_INT, '',VALUE_OPTIONAL),
-                        'categoryid' => new external_value(PARAM_INT, '',VALUE_OPTIONAL),
-                        'categoryname' => new external_value(PARAM_TEXT, '',VALUE_OPTIONAL),
-                    ])
-                ),
-                'recordsTotal' => new external_value(PARAM_INT, '',VALUE_OPTIONAL),
-                'recordsFiltered' => new external_value(PARAM_INT, '',VALUE_OPTIONAL),
+                        'cmid' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
+                        'title' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
+                        'url' => new external_value(PARAM_URL, '',VALUE_DEFAULT,null),
+                        'modulename' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
+                        'courseid' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
+                        'idnumber' => new external_value(PARAM_RAW, '',VALUE_DEFAULT,null),
+                        'categoryid' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
+                        'categoryname' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
+                    ])),
+                'recordsTotal' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
+                'recordsFiltered' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
 //                'modname' => new external_value(PARAM_TEXT, '',VALUE_OPTIONAL),
             )
         );
