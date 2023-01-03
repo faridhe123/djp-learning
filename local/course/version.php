@@ -25,5 +25,5 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_course';
-$plugin->version   = 2022120800;
+$plugin->version   = 2023010320;
 $plugin->requires  = 2015111600;
