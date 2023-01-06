@@ -153,11 +153,33 @@ class local_course_external extends external_api {
             [
                 'categoryid' => $categoryid,
             ]);
-        $courses = core_course_external::get_courses_by_field('category',$categoryid);
-        die(var_dump($courses));
+
+        $all_course = $DB->get_records('course',null,null,'id');
+        $recordsTotal= count($all_course);
+
+        $courses =
+            $categoryid ?
+            core_course_external::get_courses_by_field('category',$categoryid) :
+            core_course_external::get_courses_by_field();
+        $recordsFiltered = count($courses['courses']);
+
+        foreach($courses['courses'] as $course){
+            $array_course[] = [
+                'courseid' => $course['id'],
+//                'idnumber' => $course['idnumber'],
+                'shortname' => $course['shortname'],
+                'url' => "http://10.244.66.78/djp-learning/course/view.php?id={$course['id']}",
+//                'fullname' => $course['fullname'],
+                'startdate' => $course['startdate'],
+                'enddate' => $course['enddate'],
+//                'timecreated' => $course['timecreated'],
+            ];
+        }
+
+//        die(var_dump($array_course));
 
         return [
-            'data' => $array_cm,
+            'data' => $array_course,
             'recordsTotal' => $recordsTotal,
             'recordsFiltered' => $recordsFiltered
         ];
@@ -168,14 +190,11 @@ class local_course_external extends external_api {
             array(
                 'data' => new external_multiple_structure(
                     new external_single_structure([
-                        'cmid' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
-                        'title' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
-                        'url' => new external_value(PARAM_URL, '',VALUE_DEFAULT,null),
-                        'modulename' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
                         'courseid' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
-                        'idnumber' => new external_value(PARAM_RAW, '',VALUE_DEFAULT,null),
-                        'categoryid' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
-                        'categoryname' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
+                        'shortname' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
+                        'url' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
+                        'startdate' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
+                        'enddate' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
                     ])),
                 'recordsTotal' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
                 'recordsFiltered' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),

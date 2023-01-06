@@ -121,9 +121,9 @@ class local_grade_external extends external_api {
 
         foreach($grade['usergrades'][0]['gradeitems'] as $usergrades) {
             if($usergrades['cmid'] == $moduleid) {
-                $param_grade['grade'] = $usergrades['graderaw'];
-                $param_grade['grademax'] = $usergrades['grademax'];
-                $param_grade['gradesubmitted'] = $usergrades['gradedatesubmitted'];
+                $param_grade['grade'] = (float)$usergrades['graderaw'];
+                $param_grade['grademax'] = (float)$usergrades['grademax'];
+                $param_grade['gradesubmitted'] = (float)$usergrades['gradedatesubmitted'];
                 $param_grade['itemmodule'] = $usergrades['itemmodule'];
                 $param_grade['iteminstance'] = $usergrades['iteminstance'];
             }
@@ -163,12 +163,12 @@ class local_grade_external extends external_api {
 //                'itemmodule' => new external_value(PARAM_TEXT, ''),
 //                'iteminstance' => new external_value(PARAM_TEXT, ''),
                 'modname' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
-                'gradesubmitted' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
-                'grade' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
-                'gradepass' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
-                'grademax' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
-                'completion_state' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
-                'timecompleted' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
+                'gradesubmitted' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
+                'grade' => new external_value(PARAM_FLOAT, '',VALUE_DEFAULT,null),
+                'gradepass' => new external_value(PARAM_FLOAT, '',VALUE_DEFAULT,null),
+                'grademax' => new external_value(PARAM_FLOAT, '',VALUE_DEFAULT,null),
+                'completion_state' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
+                'timecompleted' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
                 'keterangan_state' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
             )
         );
