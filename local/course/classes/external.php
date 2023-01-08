@@ -34,6 +34,7 @@ require_once($CFG->dirroot . '/course/externallib.php');
 
 require_once($CFG->dirroot . '/lib/gradelib.php');
 
+require_once($CFG->dirroot . '/mod/quiz/classes/external.php');
 require_once($CFG->dirroot . '/completion/classes/external.php');
 require_once($CFG->dirroot . '/grade/report/user/externallib.php');
 require_once($CFG->dirroot . '/mod/feedback/classes/external.php');
@@ -79,9 +80,23 @@ class local_course_external extends external_api {
         }
 
         $recordsTotal = $DB->count_records('course_modules');
+
+//        if($modulename == 'quiz') {
+//            if($courseid) {
+//                $course = $DB->get_record('course', array('id' => $courseid));
+//            }
+//            else {
+//                $courses = $DB->get_records('course');
+//                foreach($courses as $course){
+//                    $quizzes = mod_quiz_external::get_quizzes_by_courses([$course->id]);
+//                    print_r($quizzes);
+//                }
+//            }die();
+//        }
         $modules = $DB->get_records('course_modules',$db_params,'id '.($sort??'desc'),'*',$start,$length);
         foreach($modules as $module){
             $cm = get_coursemodule_from_id(null, $module->id, 0, true, MUST_EXIST);
+
             $course = $DB->get_record('course', array('id' => $cm->course));
             $category = core_course_category::get($course->category);
             if($courseid && $courseid !== $course->id)
@@ -142,25 +157,30 @@ class local_course_external extends external_api {
         return new external_function_parameters(
             array(
                 'categoryid' => new external_value(PARAM_INT, 'Category ID', VALUE_DEFAULT, null),
+                'courseid' => new external_value(PARAM_INT, 'Category ID', VALUE_DEFAULT, null),
             )
         );
     }
 
-    public static function get_courses($categoryid) {
+    public static function get_courses($categoryid,$courseid) {
         global $DB,$CFG;
 
         $params = self::validate_parameters(self::get_courses_parameters(),
             [
                 'categoryid' => $categoryid,
+                'courseid' => $courseid,
             ]);
 
         $all_course = $DB->get_records('course',null,null,'id');
         $recordsTotal= count($all_course);
 
-        $courses =
-            $categoryid ?
-            core_course_external::get_courses_by_field('category',$categoryid) :
-            core_course_external::get_courses_by_field();
+        if($courseid)
+            $courses = core_course_external::get_courses_by_field('id',$courseid);
+        else
+            $courses =
+                $categoryid ?
+                core_course_external::get_courses_by_field('category',$categoryid) :
+                core_course_external::get_courses_by_field();
         $recordsFiltered = count($courses['courses']);
 
         foreach($courses['courses'] as $course){
@@ -201,6 +221,46 @@ class local_course_external extends external_api {
 //                'modname' => new external_value(PARAM_TEXT, '',VALUE_OPTIONAL),
             )
         );
+    }
+
+
+    public static function get_course_parameters() {
+        return new external_function_parameters(
+            array(
+                'courseid' => new external_value(PARAM_INT, 'Category ID', VALUE_DEFAULT, null),
+            )
+        );
+    }
+
+    public static function get_course($courseid) {
+        global $DB,$CFG;
+
+        $params = self::validate_parameters(self::get_course_parameters(),
+            [
+                'courseid' => $courseid,
+            ]);
+
+        $course = core_course_external::get_courses_by_field('id',$courseid)['courses'][1];
+
+        $return_course = [
+            'courseid' => $course['id'],
+            'shortname' => $course['shortname'],
+            'url' => "http://10.244.66.78/djp-learning/course/view.php?id={$course['id']}",
+            'startdate' => $course['startdate'],
+            'enddate' => $course['enddate'],
+        ];
+
+        return $return_course;
+    }
+
+    public static function get_course_returns() {
+        return new external_single_structure([
+            'courseid' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
+            'shortname' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
+            'url' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
+            'startdate' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
+            'enddate' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
+        ]);
     }
 
 }

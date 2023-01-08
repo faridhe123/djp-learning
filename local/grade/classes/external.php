@@ -39,37 +39,6 @@ require_once($CFG->dirroot . '/mod/feedback/classes/external.php');
 
 class local_grade_external extends external_api {
 
-    /**
-     * TEST PARAMETER
-     *
-     * @return external_function_parameters
-     * @since Moodle 2.2
-     */
-//    public static function manual_enrol_users_parameters() {
-//        return new external_function_parameters(
-//            array(
-//                'parameter' => new external_value(PARAM_TEXT, 'context id', VALUE_OPTIONAL, "INI DEFAULT VALUE NYA"),
-//            )
-//        );
-//    }
-    /*TEST FUNCTION*/
-//    public static function manual_enrol_users($parameter)
-//    {
-//        $params = self::validate_parameters(self::manual_enrol_users_parameters(),
-//            array(
-//                'parameter' => $parameter,
-//            ));
-//
-//        return ['value' => var_dump($params)];
-//    }
-    /*TEST RETURN*/
-//    public static function manual_enrol_users_returns() {
-//        return new external_single_structure(
-//            array(
-//                'value' => new external_value(PARAM_TEXT, ''),
-//            )
-//        );
-//    }
 
     /**
      * Returns description of method parameters.
@@ -143,20 +112,6 @@ class local_grade_external extends external_api {
         return $param_grade;
     }
 
-//    public static function get_grade_completion_returns() {
-//        return new external_single_structure(
-//            array(
-//                'value' => new external_value(PARAM_TEXT, ''),
-//            )
-//        );
-//    }
-
-    /**
-     * Returns description of method result value.
-     *
-     * @return null
-     * @since Moodle 2.2
-     */
     public static function get_grade_completion_returns() {
         return new external_single_structure(
             array(

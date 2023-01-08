@@ -40,5 +40,12 @@ $functions = array(
         'type'          => 'write',
         'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
     ),
+    'local_course_get_course' => array(
+        'classname'     => 'local_course_external',
+        'methodname'    => 'get_course',
+        'description'   => 'Dapatkan semua course',
+        'type'          => 'write',
+        'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
+    ),
 
 );
