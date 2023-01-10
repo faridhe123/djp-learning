@@ -158,18 +158,25 @@ class local_course_external extends external_api {
             array(
                 'categoryid' => new external_value(PARAM_INT, 'Category ID', VALUE_DEFAULT, null),
                 'courseid' => new external_value(PARAM_INT, 'Category ID', VALUE_DEFAULT, null),
+                'module_exists' => new external_value(PARAM_TEXT, 'Category ID', VALUE_DEFAULT, null),
             )
         );
     }
 
-    public static function get_courses($categoryid,$courseid) {
+    public static function get_courses($categoryid, $courseid, $module_exists) {
         global $DB,$CFG;
 
         $params = self::validate_parameters(self::get_courses_parameters(),
             [
                 'categoryid' => $categoryid,
                 'courseid' => $courseid,
+                'module_exists' => $module_exists,
             ]);
+
+        if($module_exists) {
+           $exists = self::get_course_module(null,$module_exists,null,null,null,null,null,null);
+           $course_exists = array_column($exists['data'], 'courseid');
+        }
 
         $all_course = $DB->get_records('course',null,null,'id');
         $recordsTotal= count($all_course);
@@ -181,9 +188,11 @@ class local_course_external extends external_api {
                 $categoryid ?
                 core_course_external::get_courses_by_field('category',$categoryid) :
                 core_course_external::get_courses_by_field();
-        $recordsFiltered = count($courses['courses']);
+//        $recordsFiltered = count($courses['courses']);
 
         foreach($courses['courses'] as $course){
+            if($module_exists && !in_array($course['id'],$course_exists)) continue;
+
             $array_course[] = [
                 'courseid' => $course['id'],
 //                'idnumber' => $course['idnumber'],
@@ -197,6 +206,8 @@ class local_course_external extends external_api {
         }
 
 //        die(var_dump($array_course));
+
+        $recordsFiltered = count($array_course);
 
         return [
             'data' => $array_course,
@@ -240,8 +251,7 @@ class local_course_external extends external_api {
                 'courseid' => $courseid,
             ]);
 
-        $course = core_course_external::get_courses_by_field('id',$courseid)['courses'][1];
-
+        $course = core_course_external::get_courses_by_field('id',$courseid)['courses'][$courseid];
         $return_course = [
             'courseid' => $course['id'],
             'shortname' => $course['shortname'],
@@ -252,7 +262,6 @@ class local_course_external extends external_api {
 
         return $return_course;
     }
-
     public static function get_course_returns() {
         return new external_single_structure([
             'courseid' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
