@@ -75,6 +75,7 @@ class local_course_external extends external_api {
             $db_params['id'] = $moduleid;
 
         if($modulename) {
+            if(strtolower($modulename) == 'survey') $modulename = 'feedback';
             $moduleid = $DB->get_record('modules', array('name' => $modulename))->id;
             $db_params['module'] = $moduleid;
         }
@@ -174,6 +175,7 @@ class local_course_external extends external_api {
             ]);
 
         if($module_exists) {
+            if(strtolower($module_exists) == 'survey')$module_exists = 'feedback';
            $exists = self::get_course_module(null,$module_exists,null,null,null,null,null,null);
            $course_exists = array_column($exists['data'], 'courseid');
         }
