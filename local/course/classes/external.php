@@ -112,7 +112,7 @@ class local_course_external extends external_api {
             $array_cm[] = [
                 'cmid' => $cm->id,
                 'title' => $cm->name,
-                'url' => "http://10.244.66.78/djp-learning/mod/{$cm->modname}/view.php?id={$cm->id}",
+                'url' => "http://10.244.98.74/djp-learning/mod/{$cm->modname}/view.php?id={$cm->id}",
                 'modulename' => $cm->modname,
                 'courseid' => $cm->course,
                 'idnumber' => $course->idnumber,
@@ -199,7 +199,7 @@ class local_course_external extends external_api {
                 'courseid' => $course['id'],
 //                'idnumber' => $course['idnumber'],
                 'shortname' => $course['shortname'],
-                'url' => "http://10.244.66.78/djp-learning/course/view.php?id={$course['id']}",
+                'url' => "http://10.244.98.74/djp-learning/course/view.php?id={$course['id']}",
 //                'fullname' => $course['fullname'],
                 'startdate' => $course['startdate'],
                 'enddate' => $course['enddate'],
@@ -257,7 +257,7 @@ class local_course_external extends external_api {
         $return_course = [
             'courseid' => $course['id'],
             'shortname' => $course['shortname'],
-            'url' => "http://10.244.66.78/djp-learning/course/view.php?id={$course['id']}",
+            'url' => "http://10.244.98.74/djp-learning/course/view.php?id={$course['id']}",
             'startdate' => $course['startdate'],
             'enddate' => $course['enddate'],
         ];
