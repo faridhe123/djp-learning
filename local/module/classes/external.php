@@ -52,6 +52,36 @@ require_once($CFG->dirroot . '/mod/quiz/locallib.php');
  */
 class local_module_external extends external_api {
 
+    static public function get_grade_info_parameters() {
+        return new external_function_parameters(
+            array(
+                'cmid' => new external_value(PARAM_INT, 'get max and min grade', VALUE_REQUIRED, null),
+            )
+        );
+    }
+
+    static public function get_grade_info($cmid) {
+        $params = self::validate_parameters(self::get_grade_info_parameters(),
+            array(
+                'cmid' => $cmid,
+            ));
+
+        return [
+            'grademax' => 0.22,
+            'gradepass' => 0.12
+        ];
+
+    }
+
+    static public function get_grade_info_returns () {
+        return new external_single_structure(
+            array(
+                'grademax' => new external_value(PARAM_FLOAT, 'Maximum Grade'),
+                'gradepass' => new external_value(PARAM_FLOAT, 'Passing Grade'),
+            )
+        );
+    }
+
     /**
      * TEST PARAMETER
      *
