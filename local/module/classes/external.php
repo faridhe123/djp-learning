@@ -37,6 +37,7 @@ require_once($CFG->libdir . '/plagiarismlib.php');
 /*MOD LIB*/
 require_once($CFG->dirroot . '/mod/page/locallib.php');
 require_once($CFG->dirroot . '/course/modlib.php');
+require_once($CFG->dirroot . '/grade/report/user/externallib.php');
 require_once($CFG->dirroot . '/question/editlib.php');
 require_once($CFG->dirroot . '/mod/quiz/locallib.php');
 
@@ -51,6 +52,49 @@ require_once($CFG->dirroot . '/mod/quiz/locallib.php');
  * @since      Moodle 3.1
  */
 class local_module_external extends external_api {
+
+    public static function get_grade_info_parameters() {
+        return new external_function_parameters(
+            array(
+                'moduleid' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, "INI DEFAULT VALUE NYA"),
+            )
+        );
+    }
+
+    public static function get_grade_info($moduleid) {
+        global $DB,$CFG;
+
+        $params = self::validate_parameters(self::get_grade_info_parameters(),
+            [
+                'moduleid' => $moduleid,
+            ]);
+
+        $userid = null;
+        $courseid = $courseid ?? $DB->get_record('course_modules', array('id' => $moduleid))->course;
+
+        $grade = gradereport_user_external::get_grade_items($courseid,$userid);
+        $param_grade['userid'] = $userid;
+
+        foreach($grade['usergrades'][0]['gradeitems'] as $usergrades) {
+            if($usergrades['cmid'] == $moduleid) {
+                $param_grade['grademax'] = (float)$usergrades['grademax'];
+                $param_grade['iteminstance'] = $usergrades['iteminstance'];
+            }
+        }
+
+        $grading_info = grade_get_grades($courseid, 'mod', 'quiz', $param_grade['iteminstance']);
+        if($grading_info->items[0]->gradepass) $param_grade['gradepass'] = $grading_info->items[0]->gradepass;
+
+        return $param_grade;
+    }
+
+    public static function get_grade_info_returns() {
+        return new external_single_structure(
+            array('gradepass' => new external_value(PARAM_FLOAT, '',VALUE_DEFAULT,null),
+                'grademax' => new external_value(PARAM_FLOAT, '',VALUE_DEFAULT,null),
+            )
+        );
+    }
 
     /**
      * TEST PARAMETER

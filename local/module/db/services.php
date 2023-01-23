@@ -57,7 +57,13 @@ $functions = array(
         'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
     ),
 
-
+    'local_module_get_grade_info' => array(
+        'classname'     => 'local_module_external',
+        'methodname'    => 'get_grade_info',
+        'description'   => 'Mendapatkan grade max dan gradepass',
+        'type'          => 'write',
+        'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
+    ),
     # Sudah tidak dipakai
 
 //    'local_module_create_page' => array(
