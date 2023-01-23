@@ -62,7 +62,7 @@ $functions = array(
         'methodname'    => 'get_grade_info',
         'description'   => 'Mendapatkan grade max dan gradepass',
         'type'          => 'write',
-        'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE, 'external_api')
+        'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
     ),
     # Sudah tidak dipakai
 
