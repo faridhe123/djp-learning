@@ -73,7 +73,6 @@ class local_module_external extends external_api {
         $courseid = $courseid ?? $DB->get_record('course_modules', array('id' => $moduleid))->course;
 
         $grade = gradereport_user_external::get_grade_items($courseid,$userid);
-        $param_grade['userid'] = $userid;
 
         foreach($grade['usergrades'][0]['gradeitems'] as $usergrades) {
             if($usergrades['cmid'] == $moduleid) {
