@@ -109,6 +109,20 @@ class local_course_external extends external_api {
             if($categoryid && $categoryid !== $category->id)
                 continue;
 
+
+
+            $grade = gradereport_user_external::get_grade_items($cm->course,null);
+
+            foreach($grade['usergrades'][0]['gradeitems'] as $usergrades) {
+                if($usergrades['cmid'] == $cm->id) {
+                    $param_grade['grademax'] = (float) $usergrades['grademax'];
+                    $iteminstance = $usergrades['iteminstance'];
+                }
+            }
+
+            $grading_info = grade_get_grades($cm->course, 'mod', 'quiz', $iteminstance);
+            if($grading_info->items[0]->gradepass) $param_grade['gradepass'] = $grading_info->items[0]->gradepass;
+
             $array_cm[] = [
                 'cmid' => $cm->id,
                 'title' => $cm->name,
@@ -117,8 +131,11 @@ class local_course_external extends external_api {
                 'courseid' => $cm->course,
                 'idnumber' => $course->idnumber,
                 'categoryid' => $category->id,
-                'categoryname' => $category->name
+                'categoryname' => $category->name,
+                'gradepass' => (float) $param_grade['gradepass'],
+                'grademax' => (float) $param_grade['grademax']
             ];
+
         }
 
         if(!$array_cm) {
@@ -126,6 +143,8 @@ class local_course_external extends external_api {
         }
 
         $recordsFiltered = count($array_cm);
+
+//        die(var_dump($array_cm));
 
         return [
             'data' => $array_cm,
@@ -147,6 +166,8 @@ class local_course_external extends external_api {
                         'idnumber' => new external_value(PARAM_RAW, '',VALUE_DEFAULT,null),
                         'categoryid' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
                         'categoryname' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
+                        'gradepass' => new external_value(PARAM_INT, '',VALUE_DEFAULT,0),
+                        'grademax' => new external_value(PARAM_INT, '',VALUE_DEFAULT,0),
                     ])),
                 'recordsTotal' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
                 'recordsFiltered' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
