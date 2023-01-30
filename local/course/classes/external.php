@@ -204,29 +204,45 @@ class local_course_external extends external_api {
         $all_course = $DB->get_records('course',null,null,'id');
         $recordsTotal= count($all_course);
 
+        $category_and_childs = array();
+        $category_and_childs[] = (string)$categoryid;
+        $childs = core_course_external::get_categories([['key'=>'parent','value'=>$categoryid]]);
+
+        foreach($childs as $child) {
+            $category_and_childs[] = $child['id'];
+            $grandchilds = core_course_external::get_categories([['key'=>'parent','value'=>$child['id']]]);
+
+            foreach($grandchilds?$grandchilds:[] as $grandchild) {
+                $category_and_childs[] = $grandchild['id'];
+            }
+        }
+
         if($courseid)
             $courses = core_course_external::get_courses_by_field('id',$courseid);
-        else
-            $courses =
-                $categoryid ?
-                core_course_external::get_courses_by_field('category',$categoryid) :
-                core_course_external::get_courses_by_field();
-//        $recordsFiltered = count($courses['courses']);
+        else {
+            if($categoryid)
+                foreach($category_and_childs as $the_category) {
+                    $thisCourse = core_course_external::get_courses_by_field('category', $the_category);
+                    if(!empty($thisCourse))
+                        foreach($thisCourse['courses'] as $course){
+                            if($module_exists && !in_array($course['id'],$course_exists)) continue;
 
-        foreach($courses['courses'] as $course){
-            if($module_exists && !in_array($course['id'],$course_exists)) continue;
-
-            $array_course[] = [
-                'courseid' => $course['id'],
-//                'idnumber' => $course['idnumber'],
-                'shortname' => $course['shortname'],
-                'url' => "http://10.244.98.74/djp-learning/course/view.php?id={$course['id']}",
-//                'fullname' => $course['fullname'],
-                'startdate' => $course['startdate'],
-                'enddate' => $course['enddate'],
-//                'timecreated' => $course['timecreated'],
-            ];
+                            $array_course[] = [
+                                'courseid' => $course['id'],
+    //                'idnumber' => $course['idnumber'],
+                                'shortname' => $course['shortname'],
+                                'url' => "http://10.244.98.74/djp-learning/course/view.php?id={$course['id']}",
+    //                'fullname' => $course['fullname'],
+                                'startdate' => $course['startdate'],
+                                'enddate' => $course['enddate'],
+    //                'timecreated' => $course['timecreated'],
+                            ];
+                        }
+                }
+            else core_course_external::get_courses_by_field();
         }
+
+//        $recordsFiltered = count($courses['courses']);
 
 //        die(var_dump($array_course));
 
