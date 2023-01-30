@@ -217,8 +217,22 @@ class local_course_external extends external_api {
             }
         }
 
-        if($courseid)
-            $courses = core_course_external::get_courses_by_field('id',$courseid);
+        $array_course = array();
+
+        if($courseid) {
+            $course = core_course_external::get_courses_by_field('id', $courseid)['courses'];
+            if($course['id'])
+                $array_course[] = [
+                    'courseid' => $course['id'],
+                    //                'idnumber' => $course['idnumber'],
+                    'shortname' => $course['shortname'],
+                    'url' => "http://10.244.98.74/djp-learning/course/view.php?id={$course['id']}",
+                    //                'fullname' => $course['fullname'],
+                    'startdate' => $course['startdate'],
+                    'enddate' => $course['enddate'],
+                    //                'timecreated' => $course['timecreated'],
+                ];
+        }
         else {
             if($categoryid)
                 foreach($category_and_childs as $the_category) {
