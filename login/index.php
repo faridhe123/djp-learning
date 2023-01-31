@@ -55,7 +55,7 @@ $errormsg = '';
 $errorcode = 0;
 
 // ANEH WANTSURL
-if(!empty($SESSION->wantsurl) && $SESSION->wantsurl !== 'http://10.244.66.78/djp-learning/') {
+if(!empty($SESSION->wantsurl) && $SESSION->wantsurl !== 'http://10.244.98.74/djp-learning/') {
     $SESSION->custom_togo = $SESSION->wantsurl;
 }
 
