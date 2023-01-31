@@ -54,15 +54,22 @@ $PAGE->set_pagelayout('login');
 $errormsg = '';
 $errorcode = 0;
 
-// login page requested session test
+// ANEH WANTSURL
+if(!empty($SESSION->wantsurl) && $SESSION->wantsurl !== 'http://10.244.66.78/djp-learning/') {
+    $SESSION->custom_togo = $SESSION->wantsurl;
+}
+
 if ($testsession) {
     if ($testsession == $USER->id) {
-        if (isset($SESSION->wantsurl)) {
+        if (isset($SESSION->custom_togo)) {
+            $urltogo = $SESSION->custom_togo;
+        }elseif (isset($SESSION->wantsurl)) {
             $urltogo = $SESSION->wantsurl;
         } else {
             $urltogo = $CFG->wwwroot.'/';
         }
         unset($SESSION->wantsurl);
+//        echo 'TOGO', var_dump($SESSION->wantsurl,$SESSION->custom_togo);die();
         redirect($urltogo);
     } else {
         // TODO: try to find out what is the exact reason why sessions do not work
