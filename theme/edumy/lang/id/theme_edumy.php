@@ -152,7 +152,7 @@ $string['config_box_shadow'] = 'Box shadow';
 
 // CCN Plugin Constants: Frontend
 $string['search_string'] = 'Search for the software or skills you want to learn';
-$string['updated'] = 'Updated';
+$string['updated'] = 'Terakhir diupdate';
 $string['events'] = 'Events';
 $string['event'] = 'Event';
 $string['rated_by'] ='{$a} student ratings';
