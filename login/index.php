@@ -160,6 +160,13 @@ if ($frm and isset($frm->username)) {                             // Login WITH 
             $logintoken = isset($frm->logintoken) ? $frm->logintoken : '';
             $user = authenticate_user_login($frm->username, $frm->password, false, $errorcode, $logintoken);
         }
+
+        /* AGAR SELAIN RELAWAN TIDAK BISA LOGIN */
+        if($user->auth !== 'db') {
+            $user = null;
+            $errormsg = 'Unauthorized login';
+            $errorcode = 4;
+        }
     }
 
     // Intercept 'restored' users to provide them with info & reset password
