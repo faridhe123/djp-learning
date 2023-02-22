@@ -3762,6 +3762,7 @@ function get_enabled_auth_plugins($fix=false) {
 
     $default = array('manual', 'nologin');
 
+    return $default;
     if (empty($CFG->auth)) {
         $auths = array();
     } else {

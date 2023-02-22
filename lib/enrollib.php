@@ -223,6 +223,9 @@ function enrol_is_enabled($enrol) {
 function enrol_check_plugins($user) {
     global $CFG;
 
+    // matikan enrol untuk backoffice
+    return null;
+
     if (empty($user->id) or isguestuser($user)) {
         // shortcut - there is no enrolment work for guests and not-logged-in users
         return;

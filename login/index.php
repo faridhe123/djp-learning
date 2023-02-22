@@ -90,6 +90,10 @@ $frm  = false;
 $user = false;
 
 $authsequence = get_enabled_auth_plugins(); // Auths, in sequence.
+
+// OVERRIDE LIST LOGIN, HANYA MANUAL
+//$authsequence = ['manual'];
+//echo "<pre>",print_r($authsequence);die();
 foreach($authsequence as $authname) {
     $authplugin = get_auth_plugin($authname);
     // The auth plugin's loginpage_hook() can eventually set $frm and/or $user.
@@ -159,6 +163,13 @@ if ($frm and isset($frm->username)) {                             // Login WITH 
         if (empty($errormsg)) {
             $logintoken = isset($frm->logintoken) ? $frm->logintoken : '';
             $user = authenticate_user_login($frm->username, $frm->password, false, $errorcode, $logintoken);
+        }
+
+        /* AGAR DARI DB TIDAK BISA LOGIN */
+        if($user->auth == 'db') {
+            $user = null;
+            $errormsg = 'Unauthorized login external';
+            $errorcode = 4;
         }
     }
 
