@@ -707,7 +707,8 @@ class moodle_url {
     public function set_scheme($scheme) {
         // See http://www.ietf.org/rfc/rfc3986.txt part 3.1.
         if (preg_match('/^[a-zA-Z][a-zA-Z0-9+.-]*$/', $scheme)) {
-            $this->scheme = $scheme;
+//            $this->scheme = $scheme;
+            $this->scheme = $CFG->protocol ?? $scheme; # DJP
         } else {
             throw new coding_exception('Bad URL scheme.');
         }
