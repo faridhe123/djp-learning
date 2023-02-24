@@ -126,7 +126,7 @@ class local_course_external extends external_api {
             $array_cm[] = [
                 'cmid' => $cm->id,
                 'title' => $cm->name,
-                'url' => $CFG->wwwroot."/mod/{$cm->modname}/view.php?id={$cm->id}",
+                'url' => $CFG->fronturl."/mod/{$cm->modname}/view.php?id={$cm->id}",
                 'modulename' => $cm->modname,
                 'courseid' => $cm->course,
                 'idnumber' => $course->idnumber,
@@ -226,7 +226,7 @@ class local_course_external extends external_api {
                     'courseid' => $course['id'],
                     //                'idnumber' => $course['idnumber'],
                     'shortname' => $course['shortname'],
-                    'url' => $CFG->wwwroot."/course/view.php?id={$course['id']}",
+                    'url' => $CFG->fronturl."/course/view.php?id={$course['id']}",
                     //                'fullname' => $course['fullname'],
                     'startdate' => $course['startdate'],
                     'enddate' => $course['enddate'],
@@ -245,7 +245,7 @@ class local_course_external extends external_api {
                                 'courseid' => $course['id'],
                                 //                'idnumber' => $course['idnumber'],
                                 'shortname' => $course['shortname'],
-                                'url' => $CFG->wwwroot."/course/view.php?id={$course['id']}",
+                                'url' => $CFG->fronturl."/course/view.php?id={$course['id']}",
                                 //                'fullname' => $course['fullname'],
                                 'startdate' => $course['startdate'],
                                 'enddate' => $course['enddate'],
@@ -308,7 +308,7 @@ class local_course_external extends external_api {
         $return_course = [
             'courseid' => $course['id'],
             'shortname' => $course['shortname'],
-            'url' => $CFG->wwwroot."/course/view.php?id={$course['id']}",
+            'url' => $CFG->fronturl."/course/view.php?id={$course['id']}",
             'startdate' => $course['startdate'],
             'enddate' => $course['enddate'],
         ];
