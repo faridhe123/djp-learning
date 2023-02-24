@@ -106,10 +106,23 @@ class local_course_external extends external_api {
             if($idnumber && $idnumber !== $course->idnumber)
                 continue;
 
-            if($categoryid && $categoryid !== $category->id)
-                continue;
+            if($categoryid && $categoryid !== $category->id) {
+                $category_and_childs = array();
+                $category_and_childs[] = (string)$categoryid;
+                $childs = core_course_external::get_categories([['key'=>'parent','value'=>$categoryid]]);
 
+                foreach($childs as $child) {
+                    $category_and_childs[] = $child['id'];
+                    $grandchilds = core_course_external::get_categories([['key'=>'parent','value'=>$child['id']]]);
 
+                    foreach($grandchilds?$grandchilds:[] as $grandchild) {
+                        $category_and_childs[] = $grandchild['id'];
+                    }
+                }
+
+                if(!in_array($category->id,$category_and_childs))
+                    continue;
+            }
 
             $grade = gradereport_user_external::get_grade_items($cm->course,null);
 
