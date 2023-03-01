@@ -71,6 +71,8 @@ class local_course_external extends external_api {
                 'sort' => $sort,
             ]);
 
+        $db_params['deletioninprogress'] = '0';
+
         if($moduleid)
             $db_params['id'] = $moduleid;
 
@@ -196,7 +198,7 @@ class local_course_external extends external_api {
             ]);
 
         if($module_exists) {
-            if(strtolower($module_exists) == 'survey')$module_exists = 'feedback';
+            if(strtolower($module_exists) == 'survey') $module_exists = 'feedback';
            $exists = self::get_course_module(null,$module_exists,null,null,null,null,null,null);
            $course_exists = array_column($exists['data'], 'courseid');
         }
