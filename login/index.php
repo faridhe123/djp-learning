@@ -162,7 +162,7 @@ if ($frm and isset($frm->username)) {                             // Login WITH 
         }
 
         /* AGAR SELAIN RELAWAN TIDAK BISA LOGIN */
-        if($user->auth !== 'db') {
+        if(!empty($user->auth) && $user->auth !== 'db') {
             $user = null;
             $errormsg = 'Unauthorized login';
             $errorcode = 4;
