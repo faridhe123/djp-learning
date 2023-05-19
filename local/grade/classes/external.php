@@ -25,6 +25,8 @@
  * @copyright  2022 Muhammad Dhea Farizka
  */
 
+use http\Env\Response;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once("$CFG->libdir/externallib.php");
@@ -125,6 +127,98 @@ class local_grade_external extends external_api {
                 'completion_state' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
                 'timecompleted' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
                 'keterangan_state' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
+            )
+        );
+    }
+
+    public static function get_grade_items_parameters() {
+        return new external_function_parameters(
+            array(
+                'userid' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
+                'courseid' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
+            )
+        );
+    }
+
+    public static function get_grade_items($userid,$courseid) {
+        global $DB;
+
+
+        $params = self::validate_parameters(self::get_grade_items_parameters(),
+            [
+                'userid' => $userid,
+                'courseid' => $courseid,
+            ]);
+
+//        echo json_encode($params,JSON_PRETTY_PRINT);exit();
+        $courseid = $DB->get_record('course',['idnumber' => $params['courseid']])->id;
+        $userid = $DB->get_record('user',['idnumber' => $params['userid']])->id;
+
+//        echo json_encode([$courseid,$userid],JSON_PRETTY_PRINT);exit();
+        $grade = gradereport_user_external::get_grade_items($courseid,$userid);
+//        $gradetable = gradereport_user_external::get_grades_table($courseid,$userid);
+//        echo json_encode(['GRADE'=> $grade, 'TABLE' => $gradetable],JSON_PRETTY_PRINT);exit();
+
+        return $grade;
+    }
+
+    public static function get_grade_items_returns() {
+        return new external_single_structure(
+            array(
+                'usergrades' => new external_multiple_structure(
+                    new external_single_structure(
+                        array(
+                            'courseid' => new external_value(PARAM_INT, 'course id'),
+                            'courseidnumber' => new external_value(PARAM_TEXT, 'course idnumber'),
+                            'userid'   => new external_value(PARAM_INT, 'user id'),
+                            'userfullname' => new external_value(PARAM_TEXT, 'user fullname'),
+                            'useridnumber' => new external_value(
+                                core_user::get_property_type('idnumber'), 'user idnumber'),
+                            'maxdepth'   => new external_value(PARAM_INT, 'table max depth (needed for printing it)'),
+                            'gradeitems' => new external_multiple_structure(
+                                new external_single_structure(
+                                    array(
+                                        'id' => new external_value(PARAM_INT, 'Grade item id'),
+                                        'itemname' => new external_value(PARAM_TEXT, 'Grade item name'),
+                                        'itemtype' => new external_value(PARAM_ALPHA, 'Grade item type'),
+                                        'itemmodule' => new external_value(PARAM_PLUGIN, 'Grade item module'),
+                                        'iteminstance' => new external_value(PARAM_INT, 'Grade item instance'),
+                                        'itemnumber' => new external_value(PARAM_INT, 'Grade item item number'),
+                                        'idnumber' => new external_value(PARAM_TEXT, 'Grade item idnumber'),
+                                        'categoryid' => new external_value(PARAM_INT, 'Grade item category id'),
+                                        'outcomeid' => new external_value(PARAM_INT, 'Outcome id'),
+                                        'scaleid' => new external_value(PARAM_INT, 'Scale id'),
+                                        'locked' => new external_value(PARAM_BOOL, 'Grade item for user locked?', VALUE_OPTIONAL),
+                                        'cmid' => new external_value(PARAM_INT, 'Course module id (if type mod)', VALUE_OPTIONAL),
+                                        'weightraw' => new external_value(PARAM_FLOAT, 'Weight raw', VALUE_OPTIONAL),
+                                        'weightformatted' => new external_value(PARAM_NOTAGS, 'Weight', VALUE_OPTIONAL),
+                                        'status' => new external_value(PARAM_ALPHA, 'Status', VALUE_OPTIONAL),
+                                        'graderaw' => new external_value(PARAM_FLOAT, 'Grade raw', VALUE_OPTIONAL),
+                                        'gradedatesubmitted' => new external_value(PARAM_INT, 'Grade submit date', VALUE_OPTIONAL),
+                                        'gradedategraded' => new external_value(PARAM_INT, 'Grade graded date', VALUE_OPTIONAL),
+                                        'gradehiddenbydate' => new external_value(PARAM_BOOL, 'Grade hidden by date?', VALUE_OPTIONAL),
+                                        'gradeneedsupdate' => new external_value(PARAM_BOOL, 'Grade needs update?', VALUE_OPTIONAL),
+                                        'gradeishidden' => new external_value(PARAM_BOOL, 'Grade is hidden?', VALUE_OPTIONAL),
+                                        'gradeislocked' => new external_value(PARAM_BOOL, 'Grade is locked?', VALUE_OPTIONAL),
+                                        'gradeisoverridden' => new external_value(PARAM_BOOL, 'Grade overridden?', VALUE_OPTIONAL),
+                                        'gradeformatted' => new external_value(PARAM_NOTAGS, 'The grade formatted', VALUE_OPTIONAL),
+                                        'grademin' => new external_value(PARAM_FLOAT, 'Grade min', VALUE_OPTIONAL),
+                                        'grademax' => new external_value(PARAM_FLOAT, 'Grade max', VALUE_OPTIONAL),
+                                        'rangeformatted' => new external_value(PARAM_NOTAGS, 'Range formatted', VALUE_OPTIONAL),
+                                        'percentageformatted' => new external_value(PARAM_NOTAGS, 'Percentage', VALUE_OPTIONAL),
+                                        'lettergradeformatted' => new external_value(PARAM_NOTAGS, 'Letter grade', VALUE_OPTIONAL),
+                                        'rank' => new external_value(PARAM_INT, 'Rank in the course', VALUE_OPTIONAL),
+                                        'numusers' => new external_value(PARAM_INT, 'Num users in course', VALUE_OPTIONAL),
+                                        'averageformatted' => new external_value(PARAM_NOTAGS, 'Grade average', VALUE_OPTIONAL),
+                                        'feedback' => new external_value(PARAM_RAW, 'Grade feedback', VALUE_OPTIONAL),
+                                        'feedbackformat' => new external_format_value('feedback', VALUE_OPTIONAL),
+                                    ), 'Grade items'
+                                )
+                            )
+                        )
+                    )
+                ),
+                'warnings' => new external_warnings()
             )
         );
     }
