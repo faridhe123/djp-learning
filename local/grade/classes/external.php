@@ -92,7 +92,7 @@ class local_grade_external extends external_api {
             if($status['cmid'] == $moduleid) {
                 $param_grade['modname'] = $status['modname'];
                 $param_grade['completion_state'] = $status['state'];
-                $param_grade['timecompleted'] = date('Y-m-d H:i:s',($status['timecompleted']));
+                $param_grade['timecompleted'] = $status['timecompleted'] ? date('Y-m-d H:i:s',($status['timecompleted'])) : null;
             }
         }
 
@@ -143,7 +143,7 @@ class local_grade_external extends external_api {
 
                 $param_grade['grade'] = (int)$usergrades['graderaw'];
                 $param_grade['grademax'] = (float)$usergrades['grademax'];
-                $param_grade['gradesubmitted'] = date('Y-m-d H:i:s',($usergrades['gradedatesubmitted']));
+                $param_grade['gradesubmitted'] = $usergrades['gradedatesubmitted'] ? date('Y-m-d H:i:s',($usergrades['gradedatesubmitted'])) : null;
                 $param_grade['itemmodule'] = $usergrades['itemmodule'];
                 $param_grade['iteminstance'] = $usergrades['iteminstance'];
             }
