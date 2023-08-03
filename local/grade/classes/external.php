@@ -34,6 +34,7 @@ require_once("$CFG->libdir/externallib.php");
 
 require_once($CFG->dirroot . '/course/lib.php');
 require_once($CFG->dirroot . '/lib/gradelib.php');
+require_once($CFG->dirroot . '/local/course/classes/external.php');
 
 require_once($CFG->dirroot . '/completion/classes/external.php');
 require_once($CFG->dirroot . '/grade/report/user/externallib.php');
@@ -51,7 +52,7 @@ class local_grade_external extends external_api {
     public static function get_grade_completion_parameters() {
         return new external_function_parameters(
             array(
-                'moduleid' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, "INI DEFAULT VALUE NYA"),
+                'moduleid' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
                 'username' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
                 'userid' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
                 'courseid' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
@@ -70,6 +71,15 @@ class local_grade_external extends external_api {
                 'courseid' => $courseid,
             ]);
 
+        if(!isset($moduleid)) {
+            // ambil module h5p pertama untuk CTAS
+            $moduleid = local_course_external::get_course_module(
+                null,
+                'h5pactivity',
+                $courseid
+            )['data'][0]['cmid'];
+        }
+
         $userid = $userid ?? $DB->get_record('user', array('username' => $username))->id;
         $courseid = $courseid ?? $DB->get_record('course_modules', array('id' => $moduleid))->course;
 
@@ -82,7 +92,7 @@ class local_grade_external extends external_api {
             if($status['cmid'] == $moduleid) {
                 $param_grade['modname'] = $status['modname'];
                 $param_grade['completion_state'] = $status['state'];
-                $param_grade['timecompleted'] = $status['timecompleted'];
+                $param_grade['timecompleted'] = date('Y-m-d H:i:s',($status['timecompleted']));
             }
         }
 
@@ -92,9 +102,48 @@ class local_grade_external extends external_api {
 
         foreach($grade['usergrades'][0]['gradeitems'] as $usergrades) {
             if($usergrades['cmid'] == $moduleid) {
-                $param_grade['grade'] = (float)$usergrades['graderaw'];
+                if($param_grade['modname'] == 'h5pactivity') {
+
+                    $sql_params = [
+                      'userid' => $userid,
+                      'grade' => $usergrades['graderaw'],
+                      'timcreated' => $usergrades['gradedatesubmitted'],
+                      'moduleid' => $usergrades['cmid'],
+                    ];
+                    /**  JABARKAN SKORE YG DISUBMIT DARI SUMMARY */
+                    $sub_contents = $DB->get_records_sql("
+                            select * 
+                                from {h5pactivity_attempts_results} 
+                                where attemptid = (
+                                    -- JABARKAN SKORE YG DISUBMIT DARI SUMMARY
+                                select id from {h5pactivity_attempts} a
+                                where 
+                                    -- ambil param dari kembalian api sebelumnya
+                                    a.userid = :userid
+                                    and (a.scaled*100) = :grade
+                                    and a.timecreated = :timcreated
+                                    and a.h5pactivityid = (
+                                        -- dapatkan module id dari id h5p
+                                        select c.id from {course_modules} a
+                                            inner join {modules} b on a.module = b.id and b.name = 'h5pactivity'
+                                            inner join {h5p} c on c.id = a.`instance`
+                                        where a.id = :moduleid)
+                                )
+                                order by id DESC",$sql_params);
+
+                    for($i = 0 ; $i < 3;$i++) {
+                        $key = array_keys($sub_contents)[$i];
+                        $jenis = $i == 0 ? 'pretest' : 'posttest';
+
+                        $param_grade["graderaw_$jenis"] = $sub_contents[$key]->rawscore;
+                        $param_grade["grademax_$jenis"] = $sub_contents[$key]->maxscore;
+                        $param_grade["grade_$jenis"] = (int) ($sub_contents[$key]->rawscore/$sub_contents[$key]->maxscore*100);
+                    }
+                }
+
+                $param_grade['grade'] = (int)$usergrades['graderaw'];
                 $param_grade['grademax'] = (float)$usergrades['grademax'];
-                $param_grade['gradesubmitted'] = (float)$usergrades['gradedatesubmitted'];
+                $param_grade['gradesubmitted'] = date('Y-m-d H:i:s',($usergrades['gradedatesubmitted']));
                 $param_grade['itemmodule'] = $usergrades['itemmodule'];
                 $param_grade['iteminstance'] = $usergrades['iteminstance'];
             }
@@ -111,6 +160,7 @@ class local_grade_external extends external_api {
             case 3: $param_grade['keterangan_state'] = 'Sudah mengerjakan, BELUM LULUS passing grade';break;
         }
 
+
         return $param_grade;
     }
 
@@ -120,12 +170,21 @@ class local_grade_external extends external_api {
 //                'itemmodule' => new external_value(PARAM_TEXT, ''),
 //                'iteminstance' => new external_value(PARAM_TEXT, ''),
                 'modname' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
-                'gradesubmitted' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
+                'gradesubmitted' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
                 'grade' => new external_value(PARAM_FLOAT, '',VALUE_DEFAULT,null),
                 'gradepass' => new external_value(PARAM_FLOAT, '',VALUE_DEFAULT,null),
                 'grademax' => new external_value(PARAM_FLOAT, '',VALUE_DEFAULT,null),
+
+                "grade_pretest" => new external_value(PARAM_FLOAT, '',VALUE_DEFAULT,null),
+                "graderaw_pretest" => new external_value(PARAM_FLOAT, '',VALUE_DEFAULT,null),
+                "grademax_pretest" => new external_value(PARAM_FLOAT, '',VALUE_DEFAULT,null),
+
+                'grade_posttest' => new external_value(PARAM_FLOAT, '',VALUE_DEFAULT,null),
+                'graderaw_posttest' => new external_value(PARAM_FLOAT, '',VALUE_DEFAULT,null),
+                'grademax_posttest' => new external_value(PARAM_FLOAT, '',VALUE_DEFAULT,null),
+
                 'completion_state' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
-                'timecompleted' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
+                'timecompleted' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
                 'keterangan_state' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
             )
         );
