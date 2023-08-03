@@ -92,7 +92,7 @@ class local_grade_external extends external_api {
             if($status['cmid'] == $moduleid) {
                 $param_grade['modname'] = $status['modname'];
                 $param_grade['completion_state'] = $status['state'];
-                $param_grade['timecompleted'] = $status['timecompleted'] ? date('Y-m-d H:i:s',($status['timecompleted'])) : null;
+                $param_grade['timecompleted'] = $status['timecompleted'];
             }
         }
 
@@ -143,7 +143,7 @@ class local_grade_external extends external_api {
 
                 $param_grade['grade'] = (int)$usergrades['graderaw'];
                 $param_grade['grademax'] = (float)$usergrades['grademax'];
-                $param_grade['gradesubmitted'] = $usergrades['gradedatesubmitted'] ? date('Y-m-d H:i:s',($usergrades['gradedatesubmitted'])) : null;
+                $param_grade['gradesubmitted'] = $usergrades['gradedatesubmitted'];
                 $param_grade['itemmodule'] = $usergrades['itemmodule'];
                 $param_grade['iteminstance'] = $usergrades['iteminstance'];
             }
@@ -158,6 +158,11 @@ class local_grade_external extends external_api {
             case 1: $param_grade['keterangan_state'] = ($param_grade['modname'] == 'feedback' || $param_grade['modname'] == 'h5pactivity')? 'User telah menyelesaikan activity' : 'User mengklik manual completion';break;
             case 2: $param_grade['keterangan_state'] = 'Sudah mengerjakan, LULUS passing grade';break;
             case 3: $param_grade['keterangan_state'] = 'Sudah mengerjakan, BELUM LULUS passing grade';break;
+        }
+
+        if($param_grade['modname'] == 'h5pactivity') {
+            $param_grade['timecompleted'] = $param_grade['timecompleted'] ? date('Y-m-d H:i:s',$param_grade['timecompleted']) : null;
+            $param_grade['gradesubmitted'] = $param_grade['gradesubmitted'] ? date('Y-m-d H:i:s',$param_grade['gradesubmitted']) : null;
         }
 
 
