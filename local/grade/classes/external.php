@@ -126,7 +126,7 @@ class local_grade_external extends external_api {
                                         -- dapatkan module id dari id h5p
                                         select c.id from {course_modules} a
                                             inner join {modules} b on a.module = b.id and b.name = 'h5pactivity'
-                                            inner join {h5p} c on c.id = a.`instance`
+                                            inner join {h5pactivity} c on c.id = a.`instance`
                                         where a.id = :moduleid)
                                 )
                                 order by id DESC",$sql_params);
