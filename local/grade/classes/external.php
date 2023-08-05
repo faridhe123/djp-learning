@@ -131,9 +131,9 @@ class local_grade_external extends external_api {
                                 )
                                 order by id DESC",$sql_params);
 
-                    for($i = 0 ; $i < 3;$i++) {
+                    for($i = 0 ; $i < 2;$i++) {
                         $key = array_keys($sub_contents)[$i];
-                        $jenis = $i == 0 ? 'pretest' : 'posttest';
+                        $jenis = $i == 0 ? 'posttest' : 'pretest';
 
                         $param_grade["graderaw_$jenis"] = $sub_contents[$key]->rawscore;
                         $param_grade["grademax_$jenis"] = $sub_contents[$key]->maxscore;
