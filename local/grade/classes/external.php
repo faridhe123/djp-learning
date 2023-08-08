@@ -56,11 +56,12 @@ class local_grade_external extends external_api {
                 'username' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
                 'userid' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
                 'courseid' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
+                'courseidnumber' => new external_value(PARAM_TEXT, 'context id', VALUE_DEFAULT, null),
             )
         );
     }
 
-    public static function get_grade_completion($moduleid,$username,$userid,$courseid) {
+    public static function get_grade_completion($moduleid,$username,$userid,$courseid,$courseidnumber) {
         global $DB,$CFG;
 
         $params = self::validate_parameters(self::get_grade_completion_parameters(),
@@ -69,9 +70,19 @@ class local_grade_external extends external_api {
                 'username' => $username,
                 'userid' => $userid,
                 'courseid' => $courseid,
+                'courseidnumber' => $courseidnumber,
             ]);
-
         if(!isset($moduleid)) {
+            if($courseidnumber || $courseid) {
+                $courseid = $courseid ?? $DB->get_record('course', array('idnumber' => $courseidnumber))->id;
+            } else {
+                throw new moodle_exception('missingparameter');
+            }
+
+            if(!$courseid) {
+                throw new moodle_exception('unknowncourserequest');
+            }
+
             // ambil module h5p pertama untuk CTAS
             $moduleid = local_course_external::get_course_module(
                 null,
@@ -131,13 +142,17 @@ class local_grade_external extends external_api {
                                 )
                                 order by id DESC",$sql_params);
 
-                    for($i = 0 ; $i < 2;$i++) {
-                        $key = array_keys($sub_contents)[$i];
-                        $jenis = $i == 0 ? 'posttest' : 'pretest';
 
-                        $param_grade["graderaw_$jenis"] = $sub_contents[$key]->rawscore;
-                        $param_grade["grademax_$jenis"] = $sub_contents[$key]->maxscore;
-                        $param_grade["grade_$jenis"] = (int) ($sub_contents[$key]->rawscore/$sub_contents[$key]->maxscore*100);
+                    $x = 0;
+                    foreach($sub_contents as $sub_content){
+                        if($sub_content->maxscore != 0 && $x<=1) {
+                            $jenis = $x == 0 ? 'posttest' : 'pretest';
+
+                            $param_grade["graderaw_$jenis"] = $sub_content->rawscore;
+                            $param_grade["grademax_$jenis"] = $sub_content->maxscore;
+                            $param_grade["grade_$jenis"] = (int) ($sub_content->rawscore/$sub_content->maxscore*100);
+                            $x++;
+                        }
                     }
                 }
 
