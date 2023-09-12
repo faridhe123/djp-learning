@@ -128,7 +128,7 @@ class local_course_external extends external_api {
             $array_cm[] = [
                 'cmid' => $cm->id,
                 'title' => $cm->name,
-                'url' => "http://10.244.66.78/djp-learning/mod/{$cm->modname}/view.php?id={$cm->id}",
+                'url' => $CFG->wwwroot."/mod/{$cm->modname}/view.php?id={$cm->id}",
                 'modulename' => $cm->modname,
                 'courseid' => $cm->course,
                 'idnumber' => $course->idnumber,
@@ -228,7 +228,7 @@ class local_course_external extends external_api {
                     'courseid' => $course['id'],
                     //                'idnumber' => $course['idnumber'],
                     'fullname' => $course['fullname'],
-                    'url' => "http://10.244.98.74/djp-learning/course/view.php?id={$course['id']}",
+                    'url' => $CFG->wwwroot."/course/view.php?id={$course['id']}",
                     //                'fullname' => $course['fullname'],
                     'startdate' => $course['startdate'],
                     'enddate' => $course['enddate'],
@@ -247,7 +247,7 @@ class local_course_external extends external_api {
                                 'courseid' => $course['id'],
                                 //                'idnumber' => $course['idnumber'],
                                 'fullname' => $course['fullname'],
-                                'url' => "http://10.244.98.74/djp-learning/course/view.php?id={$course['id']}",
+                                'url' => $CFG->wwwroot."/course/view.php?id={$course['id']}",
                                 //                'fullname' => $course['fullname'],
                                 'startdate' => $course['startdate'],
                                 'enddate' => $course['enddate'],
@@ -255,7 +255,24 @@ class local_course_external extends external_api {
                             ];
                         }
                 }
-            else core_course_external::get_courses_by_field();
+            // jika tidak ada paramss
+            else {
+                $thisCourse = core_course_external::get_courses_by_field();
+                if(!empty($thisCourse))
+                    foreach($thisCourse['courses'] as $course){
+                        if($module_exists && !in_array($course['id'],$course_exists)) continue;
+                        $array_course[] = [
+                            'courseid' => $course['id'],
+                            //                'idnumber' => $course['idnumber'],
+                            'fullname' => $course['fullname'],
+                            'url' => $CFG->wwwroot."/course/view.php?id={$course['id']}",
+                            //                'fullname' => $course['fullname'],
+                            'startdate' => $course['startdate'],
+                            'enddate' => $course['enddate'],
+                            //                'timecreated' => $course['timecreated'],
+                        ];
+                    }
+            }
         }
 
 //        $recordsFiltered = count($courses['courses']);
@@ -310,7 +327,7 @@ class local_course_external extends external_api {
         $return_course = [
             'courseid' => $course['id'],
             'fullname' => $course['fullname'],
-            'url' => "http://10.244.66.78/djp-learning/course/view.php?id={$course['id']}",
+            'url' => $CFG->wwwroot."/course/view.php?id={$course['id']}",
             'startdate' => $course['startdate'],
             'enddate' => $course['enddate'],
         ];

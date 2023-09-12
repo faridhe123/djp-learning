@@ -91,7 +91,12 @@ class local_grade_external extends external_api {
             )['data'][0]['cmid'];
         }
 
-        $userid = $userid ?? $DB->get_record('user', array('username' => $username))->id;
+        if(strlen($userid) == '16') {
+            $userid = $DB->get_record('user', array('idnumber' => $userid))->id;
+        }
+        else {
+            $userid = $userid ?? $DB->get_record('user', array('username' => $username))->id;
+        }
         $courseid = $courseid ?? $DB->get_record('course_modules', array('id' => $moduleid))->course;
 
         $activity = core_completion_external::get_activities_completion_status($courseid,$userid);
