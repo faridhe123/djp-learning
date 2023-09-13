@@ -130,19 +130,7 @@ class local_one_api_external extends external_api {
                     'newsitems' => "0",  // Hilangkan announcement
                 ]]);
 
-            // ganti gambar overviews
-            local_files_external::upload(
-                null,
-                'course',
-                'overviewfiles',
-                null,
-                null,
-                null,
-                null,
-                'course',
-                $createdCourse[0]['id'],
-                $CFG->wwwroot.'/kpdjp.jpg',
-            );
+
         } catch(Exception $e) {
             return [
                 'id' => null,
@@ -180,6 +168,20 @@ class local_one_api_external extends external_api {
             'id' => $createdCourse[0]['id'],
             'message' => 'success'
         ];
+
+        // ganti gambar overviews
+            local_files_external::upload(
+                null,
+                'course',
+                'overviewfiles',
+                null,
+                null,
+                'defautl-thumbnail.jpg',
+                null,
+                'course',
+                $createdCourse[0]['id'],
+                $CFG->wwwroot.'/kpdjp.jpg',
+            );
 
         return $one_api_created;
     }
