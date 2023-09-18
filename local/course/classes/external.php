@@ -56,7 +56,7 @@ class local_course_external extends external_api {
         );
     }
 
-    public static function get_course_module($moduleid,$modulename,$courseid,$idnumber,$categoryid,$start,$length,$sort) {
+    public static function get_course_module($moduleid=null,$modulename=null,$courseid=null,$idnumber=null,$categoryid=null,$start=null,$length=null,$sort=null) {
         global $DB,$CFG;
 
         $params = self::validate_parameters(self::get_course_module_parameters(),
@@ -268,7 +268,24 @@ class local_course_external extends external_api {
                             ];
                         }
                 }
-            else core_course_external::get_courses_by_field();
+            // jika tidak ada paramss
+            else {
+                $thisCourse = core_course_external::get_courses_by_field();
+                if(!empty($thisCourse))
+                    foreach($thisCourse['courses'] as $course){
+                        if($module_exists && !in_array($course['id'],$course_exists)) continue;
+                        $array_course[] = [
+                            'courseid' => $course['id'],
+                            //                'idnumber' => $course['idnumber'],
+                            'fullname' => $course['fullname'],
+                            'url' => $CFG->wwwroot."/course/view.php?id={$course['id']}",
+                            //                'fullname' => $course['fullname'],
+                            'startdate' => $course['startdate'],
+                            'enddate' => $course['enddate'],
+                            //                'timecreated' => $course['timecreated'],
+                        ];
+                    }
+            }
         }
 
 //        $recordsFiltered = count($courses['courses']);
