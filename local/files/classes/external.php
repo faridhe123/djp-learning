@@ -214,7 +214,7 @@ class local_files_external extends external_api {
         // Saving file.
         $dir = make_temp_directory('wsupload').'/';
 
-        $elname = 'file';
+        $elname = '_file';
 
         # penamaan , dedprecated
 //        if(!empty($_FILES)){

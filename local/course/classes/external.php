@@ -56,7 +56,7 @@ class local_course_external extends external_api {
         );
     }
 
-    public static function get_course_module($moduleid,$modulename,$courseid,$idnumber,$categoryid,$start,$length,$sort) {
+    public static function get_course_module($moduleid=null,$modulename=null,$courseid=null,$idnumber=null,$categoryid=null,$start=null,$length=null,$sort=null) {
         global $DB,$CFG;
 
         $params = self::validate_parameters(self::get_course_module_parameters(),
@@ -70,6 +70,8 @@ class local_course_external extends external_api {
                 'length' => $length,
                 'sort' => $sort,
             ]);
+
+        $db_params['deletioninprogress'] = '0';
 
         if($moduleid)
             $db_params['id'] = $moduleid;
@@ -209,7 +211,7 @@ class local_course_external extends external_api {
             ]);
 
         if($module_exists) {
-            if(strtolower($module_exists) == 'survey')$module_exists = 'feedback';
+            if(strtolower($module_exists) == 'survey') $module_exists = 'feedback';
            $exists = self::get_course_module(null,$module_exists,null,null,null,null,null,null);
            $course_exists = array_column($exists['data'], 'courseid');
         }
@@ -238,8 +240,8 @@ class local_course_external extends external_api {
                 $array_course[] = [
                     'courseid' => $course['id'],
                     //                'idnumber' => $course['idnumber'],
-                    'shortname' => $course['shortname'],
-                    'url' => $CFG->fronturl."/course/view.php?id={$course['id']}",
+                    'fullname' => $course['fullname'],
+                    'url' => $CFG->wwwroot."/course/view.php?id={$course['id']}",
                     //                'fullname' => $course['fullname'],
                     'startdate' => $course['startdate'],
                     'enddate' => $course['enddate'],
@@ -257,8 +259,8 @@ class local_course_external extends external_api {
                             $array_course[] = [
                                 'courseid' => $course['id'],
                                 //                'idnumber' => $course['idnumber'],
-                                'shortname' => $course['shortname'],
-                                'url' => $CFG->fronturl."/course/view.php?id={$course['id']}",
+                                'fullname' => $course['fullname'],
+                                'url' => $CFG->wwwroot."/course/view.php?id={$course['id']}",
                                 //                'fullname' => $course['fullname'],
                                 'startdate' => $course['startdate'],
                                 'enddate' => $course['enddate'],
@@ -266,7 +268,24 @@ class local_course_external extends external_api {
                             ];
                         }
                 }
-            else core_course_external::get_courses_by_field();
+            // jika tidak ada paramss
+            else {
+                $thisCourse = core_course_external::get_courses_by_field();
+                if(!empty($thisCourse))
+                    foreach($thisCourse['courses'] as $course){
+                        if($module_exists && !in_array($course['id'],$course_exists)) continue;
+                        $array_course[] = [
+                            'courseid' => $course['id'],
+                            //                'idnumber' => $course['idnumber'],
+                            'fullname' => $course['fullname'],
+                            'url' => $CFG->wwwroot."/course/view.php?id={$course['id']}",
+                            //                'fullname' => $course['fullname'],
+                            'startdate' => $course['startdate'],
+                            'enddate' => $course['enddate'],
+                            //                'timecreated' => $course['timecreated'],
+                        ];
+                    }
+            }
         }
 
 //        $recordsFiltered = count($courses['courses']);
@@ -288,7 +307,7 @@ class local_course_external extends external_api {
                 'data' => new external_multiple_structure(
                     new external_single_structure([
                         'courseid' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
-                        'shortname' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
+                        'fullname' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
                         'url' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
                         'startdate' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
                         'enddate' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
@@ -320,8 +339,8 @@ class local_course_external extends external_api {
         $course = core_course_external::get_courses_by_field('id',$courseid)['courses'][$courseid];
         $return_course = [
             'courseid' => $course['id'],
-            'shortname' => $course['shortname'],
-            'url' => $CFG->fronturl."/course/view.php?id={$course['id']}",
+            'fullname' => $course['fullname'],
+            'url' => $CFG->wwwroot."/course/view.php?id={$course['id']}",
             'startdate' => $course['startdate'],
             'enddate' => $course['enddate'],
         ];
@@ -331,7 +350,7 @@ class local_course_external extends external_api {
     public static function get_course_returns() {
         return new external_single_structure([
             'courseid' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
-            'shortname' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
+            'fullname' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
             'url' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
             'startdate' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
             'enddate' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),

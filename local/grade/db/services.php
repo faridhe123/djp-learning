@@ -34,4 +34,12 @@ $functions = array(
         'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
     ),
 
+    'gradereport_user_get_grade_items_2' => array(
+        'classname'     => 'local_grade_external',
+        'methodname'    => 'get_grade_items',
+        'description'   => 'Dapatkan grade dan juga status completion',
+        'type'          => 'write',
+        'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
+    ),
+
 );
