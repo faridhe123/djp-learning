@@ -124,7 +124,7 @@ class local_course_external extends external_api {
 
             $grading_info = grade_get_grades($cm->course, 'mod', 'quiz', $iteminstance);
             if($grading_info->items[0]->gradepass) $param_grade['gradepass'] = $grading_info->items[0]->gradepass;
-
+//print_r($course);die();
             $array_cm[] = [
                 'cmid' => $cm->id,
                 'title' => $cm->name,
@@ -132,12 +132,12 @@ class local_course_external extends external_api {
                 'modulename' => $cm->modname,
                 'courseid' => $cm->course,
                 'idnumber' => $course->idnumber,
+                'coursename' => $course->fullname,
                 'categoryid' => $category->id,
                 'categoryname' => $category->name,
                 'gradepass' => (float) $param_grade['gradepass'],
                 'grademax' => (float) $param_grade['grademax']
             ];
-
         }
 
         if(!$array_cm) {
@@ -166,6 +166,7 @@ class local_course_external extends external_api {
                         'modulename' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
                         'courseid' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
                         'idnumber' => new external_value(PARAM_RAW, '',VALUE_DEFAULT,null),
+                        'coursename' => new external_value(PARAM_RAW, '',VALUE_DEFAULT,null),
                         'categoryid' => new external_value(PARAM_INT, '',VALUE_DEFAULT,null),
                         'categoryname' => new external_value(PARAM_TEXT, '',VALUE_DEFAULT,null),
                         'gradepass' => new external_value(PARAM_INT, '',VALUE_DEFAULT,0),
