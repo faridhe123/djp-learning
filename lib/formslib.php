@@ -199,7 +199,7 @@ abstract class moodleform {
                 $action = preg_replace('/^http:/', 'https:', $action, 1);
             }
             //TODO: use following instead of FULLME - see MDL-33015
-            //$action = strip_querystring(qualified_me());
+            $action = strip_querystring(qualified_me());
         }
         // Assign custom data first, so that get_form_identifier can use it.
         $this->_customdata = $customdata;
