@@ -65,9 +65,10 @@ class endpoint extends persistent {
      * @return lang_string|boolean
      */
     protected function validate_url($value) {
-        if (strpos($value, 'https://') !== 0) {
-            return new lang_string('sslonlyaccess', 'error');
-        }
+        // sementara untuk pengembangan tidak perlu ssl https
+//        if (strpos($value, 'https://') !== 0) {
+//            return new lang_string('sslonlyaccess', 'error');
+//        }
         return true;
     }
 }
