@@ -558,6 +558,7 @@ abstract class oauth2_client extends curl {
         $params = array('code' => $code,
             'grant_type' => 'authorization_code',
             'redirect_uri' => $callbackurl->out(false),
+            'code_verifier' => 'qPBWPYVsw-8lOI-Is7XjOHRc-v-3mWB7PHlbgTNNdLs',
         );
 
         if ($this->basicauth) {
