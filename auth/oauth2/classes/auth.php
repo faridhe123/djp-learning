@@ -400,6 +400,10 @@ class auth extends \auth_plugin_base {
 
         $userinfo = $client->get_userinfo();
 
+        echo "<pre>",
+        print_r(['$userinfo',$userinfo]);
+        die();
+
         if (!$userinfo) {
             // Trigger login failed event.
             $failurereason = AUTH_LOGIN_NOUSER;

@@ -251,6 +251,11 @@ class api {
      *                 doesn't exist or null type is defined.
      */
     protected static function get_client_classname(?string $type): string {
+        if($type == 'tpportal') {
+            global $CFG;
+            include_once $CFG->libdir . '/classes/oauth2/client/tpportal.php';
+            return '\\core\\oauth2\\client\\tpportal';
+        }
         // Default core client class.
         $classname = 'core\\oauth2\\client';
 
