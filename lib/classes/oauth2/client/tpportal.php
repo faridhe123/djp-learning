@@ -70,6 +70,15 @@ class tpportal extends client {
         return $this->map_userinfo_to_fields($userinfo);
     }
 
+    public function logoutpage_hook() {
+        global $DB, $USER;
+
+        parent::log_out();
+        if (!$this->can_autorefresh()) {
+            return;
+        }
+    }
+
     /*public function map_userinfo_to_fields($userinfo): array
     {
         echo "<pre>",

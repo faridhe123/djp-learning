@@ -400,10 +400,6 @@ class auth extends \auth_plugin_base {
 
         $userinfo = $client->get_userinfo();
 
-        echo "<pre>",
-        print_r(['$userinfo',$userinfo]);
-        die();
-
         if (!$userinfo) {
             // Trigger login failed event.
             $failurereason = AUTH_LOGIN_NOUSER;
@@ -564,7 +560,7 @@ class auth extends \auth_plugin_base {
                     redirect(new moodle_url('/login/index.php'));
                 }
 
-                if (!empty($CFG->authpreventaccountcreation)) {
+                /*if (!empty($CFG->authpreventaccountcreation) && false) {
                     // Trigger login failed event.
                     $failurereason = AUTH_LOGIN_UNAUTHORISED;
                     $event = \core\event\user_login_failed::create(['other' => ['username' => $userinfo['username'],
@@ -576,9 +572,10 @@ class auth extends \auth_plugin_base {
                     $SESSION->loginerrormsg = $errormsg;
                     $client->log_out();
                     redirect(new moodle_url('/login/index.php'));
-                }
+                }*/
 
-                if ($issuer->get('requireconfirmation')) {
+
+                if ($issuer->get('requireconfirmation') && false) {
                     $PAGE->set_url('/auth/oauth2/confirm-account.php');
                     $PAGE->set_context(context_system::instance());
 

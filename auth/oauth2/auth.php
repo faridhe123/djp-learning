@@ -34,7 +34,10 @@ require_once($CFG->libdir.'/authlib.php');
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
  */
 class auth_plugin_oauth2 extends \auth_oauth2\auth {
-
+    public function logoutpage_hook() {
+        require_logout();
+        redirect('https://tpportal-qa.intranet.pajak.go.id/identityproviderportal/connect/endsession');
+    }
 }
 
 
