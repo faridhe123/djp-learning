@@ -74,7 +74,8 @@ class local_grade_external extends external_api {
             ]);
         if(!isset($moduleid)) {
             if($courseidnumber || $courseid) {
-                $courseid = $courseid ?? $DB->get_record('course', array('idnumber' => $courseidnumber))->id;
+//                die(substr($courseid, 0, 2));
+                $courseid = substr($courseid,0,2) !== 'DN' ? $courseid : $DB->get_record('course', array('idnumber' => $courseidnumber??$courseid))->id;
             } else {
                 throw new moodle_exception('missingparameter');
             }
