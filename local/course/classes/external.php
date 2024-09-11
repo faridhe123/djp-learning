@@ -58,7 +58,6 @@ class local_course_external extends external_api {
 
     public static function get_course_module($moduleid=null,$modulename=null,$courseid=null,$idnumber=null,$categoryid=null,$start=null,$length=null,$sort=null) {
         global $DB,$CFG;
-
         $params = self::validate_parameters(self::get_course_module_parameters(),
             [
                 'moduleid' => $moduleid,
@@ -71,85 +70,55 @@ class local_course_external extends external_api {
                 'sort' => $sort,
             ]);
 
-        $db_params['deletioninprogress'] = '0';
-
-        if($moduleid)
-            $db_params['id'] = $moduleid;
-
-        if($modulename) {
-            if(strtolower($modulename) == 'survey') $modulename = 'feedback';
-            $moduleid = $DB->get_record('modules', array('name' => $modulename))->id;
-            $db_params['module'] = $moduleid;
-        }
-
         $recordsTotal = $DB->count_records('course_modules');
+        $sql_params = [
+            'moduleid' => $moduleid,
+            'modulename' => $modulename??'',
+            'courseid' => $courseid,
+            'idnumber' => $idnumber,
+            'categoryid' => $categoryid,
+        ];
 
-//        if($modulename == 'quiz') {
-//            if($courseid) {
-//                $course = $DB->get_record('course', array('id' => $courseid));
-//            }
-//            else {
-//                $courses = $DB->get_records('course');
-//                foreach($courses as $course){
-//                    $quizzes = mod_quiz_external::get_quizzes_by_courses([$course->id]);
-//                    print_r($quizzes);
-//                }
-//            }die();
-//        }
-        $modules = $DB->get_records('course_modules',$db_params,'id '.($sort??'desc'),'*',$start,$length);
-        foreach($modules as $module){
-            $cm = get_coursemodule_from_id(null, $module->id, 0, true, MUST_EXIST);
+        $sub_contents = $DB->get_records_sql("
+                    select a.id,a.course,a.idnumber, # DETIL MODUL dan GRADE GRADEnya
+                        c.id course_id,
+                       c.fullname course_fullname,
+                       c.shortname course_shortname,
+                       g.itemname name,
+                       m.name modname,
+                       g.grademax,
+                       g.gradepass,
+                       g.grademin,
+                       cat.id categoryid,cat.name categoryname
+                from mdl_course_modules a
+                    left join mdl_modules m on m.id = a.module
+                    left join mdl_course c on c.id = a.course
+                    left join mdl_grade_items g on g.itemmodule = m.name and g.iteminstance = a.instance
+                    left join mdl_course_categories cat on cat.id = c.category
+                where a.deletioninprogress = '0' 
+                    ".($moduleid ? " and a.id = :moduleid " : " " )."
+                    ".($modulename ? " and m.name = :modulename " : " " )."
+                    ".($courseid ? " and c.id = :courseid " : " " )."
+                    ".($idnumber ? " and a.idnumber = :idnumber " : " " )."
+                    ".($categoryid ? " and c.category = :categoryid " : " " )."
+                 ",
+            $sql_params,
+            $start,$length
+        );
 
-            $course = $DB->get_record('course', array('id' => $cm->course));
-            $category = core_course_category::get($course->category);
-            if($courseid && $courseid !== $course->id)
-                continue;
-
-            if($idnumber && $idnumber !== $course->idnumber)
-                continue;
-
-            if($categoryid && $categoryid !== $category->id) {
-                $category_and_childs = array();
-                $category_and_childs[] = (string)$categoryid;
-                $childs = core_course_external::get_categories([['key'=>'parent','value'=>$categoryid]]);
-
-                foreach($childs as $child) {
-                    $category_and_childs[] = $child['id'];
-                    $grandchilds = core_course_external::get_categories([['key'=>'parent','value'=>$child['id']]]);
-
-                    foreach($grandchilds?$grandchilds:[] as $grandchild) {
-                        $category_and_childs[] = $grandchild['id'];
-                    }
-                }
-
-                if(!in_array($category->id,$category_and_childs))
-                    continue;
-            }
-
-            $grade = gradereport_user_external::get_grade_items($cm->course,null);
-
-            foreach($grade['usergrades'][0]['gradeitems'] as $usergrades) {
-                if($usergrades['cmid'] == $cm->id) {
-                    $param_grade['grademax'] = (float) $usergrades['grademax'];
-                    $iteminstance = $usergrades['iteminstance'];
-                }
-            }
-
-            $grading_info = grade_get_grades($cm->course, 'mod', 'quiz', $iteminstance);
-            if($grading_info->items[0]->gradepass) $param_grade['gradepass'] = $grading_info->items[0]->gradepass;
-//print_r($course);die();
+        foreach($sub_contents as $content){
             $array_cm[] = [
-                'cmid' => $cm->id,
-                'title' => $cm->name,
-                'url' => $CFG->fronturl."/mod/{$cm->modname}/view.php?id={$cm->id}",
-                'modulename' => $cm->modname,
-                'courseid' => $cm->course,
-                'idnumber' => $course->idnumber,
-                'coursename' => $course->fullname,
-                'categoryid' => $category->id,
-                'categoryname' => $category->name,
-                'gradepass' => (float) $param_grade['gradepass'],
-                'grademax' => (float) $param_grade['grademax']
+                'cmid' => $content->id,
+                'title' => $content->name,
+                'url' => $CFG->wwwroot."/mod/{$content->modname}/view.php?id={$content->id}",
+                'modulename' => $content->modname,
+                'courseid' => $content->course_id,
+                'idnumber' => $content->idnumber,
+                'coursename' => $content->course_fullname,
+                'categoryid' => $content->categoryid,
+                'categoryname' => $content->categoryname,
+                'gradepass' => (float) $content->gradepass ,
+                'grademax' => (float) $content->grademax
             ];
         }
 
@@ -158,8 +127,6 @@ class local_course_external extends external_api {
         }
 
         $recordsFiltered = count($array_cm);
-
-//        die(var_dump($array_cm));
 
         return [
             'data' => $array_cm,
