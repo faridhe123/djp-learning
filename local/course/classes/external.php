@@ -213,8 +213,23 @@ class local_course_external extends external_api {
 
         if($module_exists) {
             if(strtolower($module_exists) == 'survey') $module_exists = 'feedback';
-           $exists = self::get_course_module(null,$module_exists,null,null,null,null,null,null);
-           $course_exists = array_column($exists['data'], 'courseid');
+//           $exists = self::get_course_module(null,$module_exists,null,null,null,null,null,null);
+//           $course_exists = array_column($exists['data'], 'courseid');
+//
+//            echo print_r($course_exists);
+//            die();
+            $sql_params = [
+                'modulename' => $module_exists,
+            ];
+
+            /**  GET LIST COURSE dg MODULE EXIST */
+            $sub_contents = $DB->get_records_sql("SELECT distinct course -- get module sesuai tipe yg dicari
+                            from mdl_course_modules
+                            where module =
+                                  (SELECT mdl_modules.id -- get id module yg dicari
+                                            FROM mdl_modules
+                                            WHERE name = :modulename)",$sql_params);
+            $course_exists = array_keys(($sub_contents));
         }
 
         $all_course = $DB->get_records('course',null,null,'id');
@@ -242,7 +257,7 @@ class local_course_external extends external_api {
                     'courseid' => $course['id'],
                     //                'idnumber' => $course['idnumber'],
                     'fullname' => $course['fullname'],
-                    'url' => $CFG->fronturl."/course/view.php?id={$course['id']}",
+                    'url' => $CFG->wwwroot."/course/view.php?id={$course['id']}",
                     //                'fullname' => $course['fullname'],
                     'startdate' => $course['startdate'],
                     'enddate' => $course['enddate'],
@@ -261,7 +276,7 @@ class local_course_external extends external_api {
                                 'courseid' => $course['id'],
                                 //                'idnumber' => $course['idnumber'],
                                 'fullname' => $course['fullname'],
-                                'url' => $CFG->fronturl."/course/view.php?id={$course['id']}",
+                                'url' => $CFG->wwwroot."/course/view.php?id={$course['id']}",
                                 //                'fullname' => $course['fullname'],
                                 'startdate' => $course['startdate'],
                                 'enddate' => $course['enddate'],
