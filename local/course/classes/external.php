@@ -81,19 +81,42 @@ class local_course_external extends external_api {
 
         $sub_contents = $DB->get_records_sql("
                     select a.id,a.course,a.idnumber, # DETIL MODUL dan GRADE GRADEnya
-                        c.id course_id,
+                       c.id course_id,
                        c.fullname course_fullname,
                        c.shortname course_shortname,
-                       g.itemname name,
                        m.name modname,
+                       CASE
+                           WHEN m.name = 'assign' THEN (SELECT name FROM mdl_assign WHERE id = a.instance)
+                           WHEN m.name = 'chat' THEN (SELECT name FROM mdl_chat WHERE id = a.instance)
+                           WHEN m.name = 'choice' THEN (SELECT name FROM mdl_choice WHERE id = a.instance)
+                           WHEN m.name = 'data' THEN (SELECT name FROM mdl_data WHERE id = a.instance)
+                           WHEN m.name = 'feedback' THEN (SELECT name FROM mdl_feedback WHERE id = a.instance)
+                           WHEN m.name = 'forum' THEN (SELECT name FROM mdl_forum WHERE id = a.instance)
+                           WHEN m.name = 'glossary' THEN (SELECT name FROM mdl_glossary WHERE id = a.instance)
+                           WHEN m.name = 'lesson' THEN (SELECT name FROM mdl_lesson WHERE id = a.instance)
+                           WHEN m.name = 'quiz' THEN (SELECT name FROM mdl_quiz WHERE id = a.instance)
+                           WHEN m.name = 'resource' THEN (SELECT name FROM mdl_resource WHERE id = a.instance)
+                           WHEN m.name = 'scorm' THEN (SELECT name FROM mdl_scorm WHERE id = a.instance)
+                           WHEN m.name = 'survey' THEN (SELECT name FROM mdl_survey WHERE id = a.instance)
+                           WHEN m.name = 'wiki' THEN (SELECT name FROM mdl_wiki WHERE id = a.instance)
+                           WHEN m.name = 'workshop' THEN (SELECT name FROM mdl_workshop WHERE id = a.instance)
+                           WHEN m.name = 'book' THEN (SELECT name FROM mdl_book WHERE id = a.instance)
+                           WHEN m.name = 'folder' THEN (SELECT name FROM mdl_folder WHERE id = a.instance)
+                           WHEN m.name = 'page' THEN (SELECT name FROM mdl_page WHERE id = a.instance)
+                           WHEN m.name = 'url' THEN (SELECT name FROM mdl_url WHERE id = a.instance)
+                           WHEN m.name = 'h5pactivity' THEN (SELECT name FROM mdl_h5pactivity WHERE id = a.instance)
+                           WHEN m.name = 'ompdf' THEN (SELECT name FROM mdl_ompdf WHERE id = a.instance)
+                           ELSE 'Unknown Module'
+                           END name,
                        g.grademax,
                        g.gradepass,
                        g.grademin,
-                       cat.id categoryid,cat.name categoryname
+                       cat.id categoryid,
+                       cat.name categoryname
                 from mdl_course_modules a
                     left join mdl_modules m on m.id = a.module
                     left join mdl_course c on c.id = a.course
-                    left join mdl_grade_items g on g.itemmodule = m.name and g.iteminstance = a.instance
+                     left join mdl_grade_items g on g.itemmodule = m.name and g.iteminstance = a.instance
                     left join mdl_course_categories cat on cat.id = c.category
                 where a.deletioninprogress = '0' 
                     ".($moduleid ? " and a.id = :moduleid " : " " )."
@@ -104,7 +127,7 @@ class local_course_external extends external_api {
                  ",
             $sql_params,
             $start,$length
-        );
+        );;
 
         foreach($sub_contents as $content){
             $array_cm[] = [
