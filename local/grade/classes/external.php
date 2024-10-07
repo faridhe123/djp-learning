@@ -95,11 +95,12 @@ class local_grade_external extends external_api {
         if(strlen($userid) == '16') {
             $userid = $DB->get_record('user', array('idnumber' => $userid))->id;
         }
-        else {
-            $userid = $userid ?? $DB->get_record('user', array('username' => $username))->id;
-        }
+        elseif($username) {
+            $userid = $DB->get_record('user', array('username' => $username))->id;
+        } else
+            $userid = $userid;
         $courseid = $courseid ?? $DB->get_record('course_modules', array('id' => $moduleid))->course;
-
+//die($userid);
         $activity = core_completion_external::get_activities_completion_status($courseid,$userid);
         $grade = gradereport_user_external::get_grade_items($courseid,$userid);
 //        $feedback = mod_feedback_external::get_feedbacks_by_courses([$courseid]);
@@ -112,7 +113,6 @@ class local_grade_external extends external_api {
                 $param_grade['timecompleted'] = $status['timecompleted'];
             }
         }
-
         if(!isset($param_grade['modname']))
             print_error('module tidak ditemukan!');
 //            throw new moodle_exception('cannotaccess', 'mod_feedback');
@@ -228,21 +228,21 @@ class local_grade_external extends external_api {
     public static function get_grade_items($userid,$courseid) {
         global $DB;
 
-
         $params = self::validate_parameters(self::get_grade_items_parameters(),
             [
                 'userid' => $userid,
                 'courseid' => $courseid,
             ]);
 
-//        echo json_encode($params,JSON_PRETTY_PRINT);exit();
         $courseid = $DB->get_record('course',['idnumber' => $params['courseid']])->id;
-        $userid = $DB->get_record('user',['idnumber' => $params['userid']])->id;
 
-//        echo json_encode([$courseid,$userid],JSON_PRETTY_PRINT);exit();
+        if(strlen($userid) == '16' || strlen($userid) == '15') {
+            $users = $DB->get_record('user', array('idnumber' => $userid));
+            if(empty($users)) throw new Exception('User id number not exist: '.$userid,404);
+            $userid = $users->id;
+        }
+
         $grade = gradereport_user_external::get_grade_items($courseid,$userid);
-//        $gradetable = gradereport_user_external::get_grades_table($courseid,$userid);
-//        echo json_encode(['GRADE'=> $grade, 'TABLE' => $gradetable],JSON_PRETTY_PRINT);exit();
 
         return $grade;
     }
