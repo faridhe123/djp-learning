@@ -6,6 +6,25 @@ global $CFG,$DB,$USER,$PAGE;
 header('Content-Type: application/json');
 $useridnumberparams   = optional_param('useridnumber', 0, PARAM_ALPHANUM);
 $useridparams   = optional_param('userid', 0, PARAM_ALPHANUM);
+$tokenparams   = required_param('token', PARAM_ALPHANUM);
+
+if (empty($tokenparams)) {
+    http_response_code(401);
+    echo json_encode([
+        'message' => "token tidak ditemukan!",
+        'code' => 401
+    ]);
+    die();
+}
+if ( $tokenparams !== '4235b024d19f2b13f54795eaff4c9cbb') {
+    http_response_code(401);
+    echo json_encode([
+        'message' => "Invalid token",
+        'code' => 401
+    ]);
+    die();
+}
+
 
 if (empty($useridparams) && empty($useridnumberparams)) {
     http_response_code(404);

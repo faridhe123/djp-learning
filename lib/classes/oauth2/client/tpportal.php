@@ -39,35 +39,64 @@ class tpportal extends client {
      * @return array|false
      */
     public function get_userinfo() {
-        /*$url = $this->get_issuer()->get_endpoint_url('userinfo');
+//        $userinfo = parent::get_userinfo();
+        $userinfo = tpportal::decode($this->accesstoken->token, null, false);
+
+        $npwp = $userinfo->user_name;
+        $url = $this->get_issuer()->get_endpoint_url('userinfo');
         if (empty($url)) {
             return false;
         }
 
         $params = [
-            'npwp'=> '3173052203890009'
+            'npwp'=> $npwp
         ];
 
-        $this->setHeader($this->setHeader('Authorization: +smv/oU0fYA9vrG9JdIdVcbMhIEvNCd+2sIT5kUMYkBNfFFaTNxokEZ3es0xw5ai7UOzAq95OrH8YCoPLN713w=='));*/
+        $this->setHeader($this->setHeader('Authorization: +smv/oU0fYA9vrG9JdIdVcbMhIEvNCd+2sIT5kUMYkBNfFFaTNxokEZ3es0xw5ai7UOzAq95OrH8YCoPLN713w=='));
 
-//        $info = $this->post($url, $this->build_post_data($params));
-//        echo "<pre>",
-//        print_r(['token',$this->accesstoken->token]);
-//        print_r(['decode',]);
-
-//        print_r(['info',$info]);
-//        die();
-//        if (!$response) {
-//            return false;
-//        }
-//        $userinfo = $response;
-        $userinfo = tpportal::decode($this->accesstoken->token, null, false);
-        if (is_null($userinfo)) {
-            // Throw an exception displaying the original response, because, at this point, $userinfo shouldn't be empty.
-            throw new moodle_exception($userinfo);
+        $info = $this->post($url, $this->build_post_data($params));
+        if (!$info) {
+            return false;
         }
 
-        return $this->map_userinfo_to_fields($userinfo);
+        $dataWp = json_decode($info)->result->dataWp[0];
+        $alamatMain = count($dataWp->alamatWp)==1 ?
+            $dataWp->alamatWp[0] :
+            array_filter($dataWp->alamatWp, function ($alamat) {
+                if ($alamat->jenisAlamat == 'MAIN') return true;
+                else return false;
+            })[0];
+
+        $fields = [
+            'firstname' => $dataWp->namaWp,
+            'lastname' => ' ',
+            'email' => $dataWp->email,
+            'city' => $alamatMain->kota,
+            'country' => '',
+            'lang' => $userinfo->language,
+            'description' => $dataWp->jenisWp,
+            'idnumber' => $dataWp->npwp,
+            'institution' => $dataWp->kppAdm,
+            'departement' => $dataWp->klu,
+            'phone1' => '',
+            'phone2' => '',
+            'address' => $alamatMain->detilAlamat,
+            'firstnamephonetic' => substr($dataWp->namaWp, 0, 1),
+            'lastnamephonetic' => '',
+            'middlename' => '',
+            'alternatename' => '',
+            'picture' => '',
+            'username' => $userinfo->user_name,
+        ];
+
+
+        if (is_null($fields)) {
+            // Throw an exception displaying the original response, because, at this point, $userinfo shouldn't be empty.
+            throw new moodle_exception($fields);
+        }
+        $fieldsObj = (object)$fields;
+
+        return $this->map_userinfo_to_fields($fieldsObj);
     }
 
     public function logoutpage_hook() {
